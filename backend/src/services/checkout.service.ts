@@ -1,10 +1,11 @@
 import { DonationModel } from '../models/donation.model';
-import { query, getCurrentDateTime } from '../config/database';
+import { query, getCurrentDateTime, pool } from '../config/database';
 import { CheckoutRequest, CheckoutResponse, CheckoutCartItem } from '../types/checkout.types';
 
 export class CheckoutService {
   /**
    * Process checkout - creates records in existing tables from client-side cart
+   * Uses database transaction to ensure atomicity (all-or-nothing)
    */
   static async processCheckout(
     customerId: number,
@@ -14,72 +15,97 @@ export class CheckoutService {
       throw new Error('Cart is empty');
     }
 
-    // SECURITY: Payment method storage disabled - see savePaymentMethod() for details
-    // Auto-renewal requires payment gateway integration (Stripe/Braintree)
-    if (checkoutData.save_payment_method && checkoutData.payment_data) {
-      await this.savePaymentMethod(customerId, checkoutData.payment_data);
-    }
+    // Get database connection from pool for transaction
+    const connection = await pool.getConnection();
 
-    // Track counts for response
-    const summary = {
-      tickets: 0,
-      events: 0,
-      cafe_items: 0,
-      gift_shop_items: 0,
-      donations: 0,
-      memberships: 0,
-    };
+    try {
+      // Start transaction
+      await connection.beginTransaction();
+      console.log('[CHECKOUT] Transaction started for customer:', customerId);
 
-    // Process each cart item
-    for (const item of checkoutData.items) {
-      switch (item.item_type) {
-        case 'ticket':
-          await this.createTicketRecords(item, customerId, checkoutData.payment_method);
-          summary.tickets += item.quantity;
-          break;
-
-        case 'event':
-          await this.createEventRegistration(item, customerId);
-          summary.events++;
-          break;
-
-        case 'cafe_item':
-          await this.createCafeSale(item, customerId);
-          summary.cafe_items += item.quantity;
-          break;
-
-        case 'gift_shop_item':
-          await this.createGiftShopSale(item, customerId, checkoutData.payment_method);
-          summary.gift_shop_items += item.quantity;
-          break;
-
-        case 'donation':
-          await this.createDonation(item, customerId, checkoutData.payment_method);
-          summary.donations++;
-          break;
-
-        case 'membership':
-          await this.createMembership(item, customerId, checkoutData.payment_method, checkoutData.payment_data, checkoutData.save_payment_method);
-          summary.memberships++;
-          break;
-
-        default:
-          console.error(`Unknown item type: ${item.item_type}`);
+      // SECURITY: Payment method storage disabled - see savePaymentMethod() for details
+      // Auto-renewal requires payment gateway integration (Stripe/Braintree)
+      if (checkoutData.save_payment_method && checkoutData.payment_data) {
+        await this.savePaymentMethod(customerId, checkoutData.payment_data);
       }
+
+      // Track counts for response
+      const summary = {
+        tickets: 0,
+        events: 0,
+        cafe_items: 0,
+        gift_shop_items: 0,
+        donations: 0,
+        memberships: 0,
+      };
+
+      // Process each cart item within transaction
+      for (const item of checkoutData.items) {
+        console.log(`[CHECKOUT] Processing ${item.item_type}:`, item.item_id);
+
+        switch (item.item_type) {
+          case 'ticket':
+            await this.createTicketRecords(item, customerId, checkoutData.payment_method, connection);
+            summary.tickets += item.quantity;
+            break;
+
+          case 'event':
+            await this.createEventRegistration(item, customerId, connection);
+            summary.events++;
+            break;
+
+          case 'cafe_item':
+            await this.createCafeSale(item, customerId, connection);
+            summary.cafe_items += item.quantity;
+            break;
+
+          case 'gift_shop_item':
+            await this.createGiftShopSale(item, customerId, checkoutData.payment_method, connection);
+            summary.gift_shop_items += item.quantity;
+            break;
+
+          case 'donation':
+            await this.createDonation(item, customerId, checkoutData.payment_method, connection);
+            summary.donations++;
+            break;
+
+          case 'membership':
+            await this.createMembership(item, customerId, checkoutData.payment_method, connection);
+            summary.memberships++;
+            break;
+
+          default:
+            console.error(`Unknown item type: ${item.item_type}`);
+        }
+      }
+
+      // Calculate total
+      const totalAmount = checkoutData.items.reduce(
+        (sum, item) => sum + item.unit_price * item.quantity,
+        0
+      );
+
+      // Commit transaction - all operations succeeded
+      await connection.commit();
+      console.log('[CHECKOUT] Transaction committed successfully');
+
+      return {
+        success: true,
+        summary,
+        total_amount: totalAmount,
+        message: 'Order completed successfully',
+      };
+
+    } catch (error) {
+      // Rollback transaction on any error
+      await connection.rollback();
+      console.error('[CHECKOUT] Transaction rolled back due to error:', error);
+      throw error;
+    } finally {
+      // Always release connection back to pool
+      connection.release();
+      console.log('[CHECKOUT] Database connection released');
     }
-
-    // Calculate total
-    const totalAmount = checkoutData.items.reduce(
-      (sum, item) => sum + item.unit_price * item.quantity,
-      0
-    );
-
-    return {
-      success: true,
-      summary,
-      total_amount: totalAmount,
-      message: 'Order completed successfully',
-    };
   }
 
   /**
@@ -88,13 +114,14 @@ export class CheckoutService {
   private static async createTicketRecords(
     item: CheckoutCartItem,
     customerId: number,
-    paymentMethod: 'credit' | 'debit'
+    paymentMethod: 'credit' | 'debit',
+    connection: any
   ): Promise<void> {
     const metadata = item.metadata || {};
     const currentDateTime = getCurrentDateTime();
 
     for (let i = 0; i < item.quantity; i++) {
-      await query(
+      await connection.execute(
         `INSERT INTO tickets (customer_id, visit_date, ticket_type, price, payment_method, purchase_date)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [customerId, metadata.visit_date, metadata.ticket_type, item.unit_price, paymentMethod, currentDateTime]
@@ -107,13 +134,14 @@ export class CheckoutService {
    */
   private static async createEventRegistration(
     item: CheckoutCartItem,
-    customerId: number
+    customerId: number,
+    connection: any
   ): Promise<void> {
     const metadata = item.metadata || {};
     const totalAmount = item.unit_price * (metadata.participants || 1);
     const currentDateTime = getCurrentDateTime();
 
-    await query(
+    await connection.execute(
       `INSERT INTO event_registrations (event_id, customer_id, number_of_participants, total_amount, payment_status, registration_date)
        VALUES (?, ?, ?, ?, 'paid', ?)`,
       [metadata.event_id || item.item_id, customerId, metadata.participants || 1, totalAmount, currentDateTime]
@@ -125,7 +153,8 @@ export class CheckoutService {
    */
   private static async createCafeSale(
     item: CheckoutCartItem,
-    customerId: number
+    customerId: number,
+    connection: any
   ): Promise<void> {
     const metadata = item.metadata || {};
     const cafeId = metadata.cafe_id || 1;
@@ -133,7 +162,7 @@ export class CheckoutService {
     const lineTotal = item.unit_price * item.quantity;
     const currentDateTime = getCurrentDateTime();
 
-    await query(
+    await connection.execute(
       `INSERT INTO cafe_sales (cafe_id, transaction_id, customer_id, employee_id, item_id, quantity, line_total, sale_timestamp, status)
        VALUES (?, ?, ?, NULL, ?, ?, ?, ?, 'completed')`,
       [cafeId, transactionId, customerId, item.item_id, item.quantity, lineTotal, currentDateTime]
@@ -147,7 +176,8 @@ export class CheckoutService {
   private static async createGiftShopSale(
     item: CheckoutCartItem,
     customerId: number,
-    paymentMethod: 'credit' | 'debit'
+    paymentMethod: 'credit' | 'debit',
+    connection: any
   ): Promise<void> {
     const metadata = item.metadata || {};
     const giftShopId = metadata.gift_shop_id || 1;
@@ -155,11 +185,12 @@ export class CheckoutService {
     const currentDateTime = getCurrentDateTime();
 
     // Validate item exists and check stock availability
-    const [itemData] = await query<any[]>(
+    const [itemResults] = await connection.execute(
       `SELECT item_id, quantity_in_stock, name FROM gift_shop_items
        WHERE item_id = ? AND deleted_at IS NULL`,
       [item.item_id]
     );
+    const itemData = itemResults[0];
 
     if (!itemData) {
       throw new Error(`Gift shop item #${item.item_id} not found or has been deleted`);
@@ -174,7 +205,7 @@ export class CheckoutService {
     }
 
     // Create transaction
-    const transactionResult = await query<any>(
+    const [transactionResult] = await connection.execute(
       `INSERT INTO gift_shop_sales_transactions (gift_shop_id, customer_id, employee_id, total_amount, payment_method, sale_date, status)
        VALUES (?, ?, NULL, ?, ?, ?, 'completed')`,
       [giftShopId, customerId, totalAmount, paymentMethod, currentDateTime]
@@ -183,7 +214,7 @@ export class CheckoutService {
     const transactionId = transactionResult.insertId;
 
     // Create sale item
-    await query(
+    await connection.execute(
       `INSERT INTO gift_shop_sale_items (transaction_id, item_id, quantity, unit_price)
        VALUES (?, ?, ?, ?)`,
       [transactionId, item.item_id, item.quantity, item.unit_price]
@@ -191,16 +222,17 @@ export class CheckoutService {
 
     // Deplete stock - reduce quantity_in_stock by purchased quantity
     // This is atomic in MySQL and prevents race conditions
-    await query(
+    await connection.execute(
       `UPDATE gift_shop_items SET quantity_in_stock = quantity_in_stock - ? WHERE item_id = ? AND quantity_in_stock >= ?`,
       [item.quantity, item.item_id, item.quantity]
     );
 
     // Verify the update was successful (in case another customer bought the last item)
-    const [updatedItem] = await query<any[]>(
+    const [updatedResults] = await connection.execute(
       `SELECT quantity_in_stock FROM gift_shop_items WHERE item_id = ?`,
       [item.item_id]
     );
+    const updatedItem = updatedResults[0];
 
     if (updatedItem.quantity_in_stock < 0) {
       throw new Error(`"${itemData.name}" sold out - unable to complete purchase. Please remove from cart and try again.`);
@@ -213,17 +245,17 @@ export class CheckoutService {
   private static async createDonation(
     item: CheckoutCartItem,
     customerId: number,
-    paymentMethod: 'credit' | 'debit'
+    paymentMethod: 'credit' | 'debit',
+    connection: any
   ): Promise<void> {
     const metadata = item.metadata || {};
     const currentDateTime = getCurrentDateTime();
 
-    await DonationModel.create({
-      customer_id: customerId,
-      amount: item.unit_price,
-      message: metadata.donation_message,
-      payment_method: paymentMethod,
-    }, currentDateTime);
+    await connection.execute(
+      `INSERT INTO donations (customer_id, amount, donation_date, message, payment_method)
+       VALUES (?, ?, ?, ?, ?)`,
+      [customerId, item.unit_price, currentDateTime, metadata.donation_message || null, paymentMethod]
+    );
   }
 
   /**
@@ -233,29 +265,30 @@ export class CheckoutService {
     item: CheckoutCartItem,
     customerId: number,
     paymentMethod: 'credit' | 'debit',
-    paymentData?: any,
-    shouldSavePaymentMethod: boolean = false
+    connection: any
   ): Promise<void> {
     const metadata = item.metadata || {};
     const membershipPrice = 149.00; // Individual membership price
     let paymentMethodId: number | null = null;
 
     // Check if customer already has an active membership
-    const [existingMembership] = await query<any[]>(
-      `SELECT membership_end_date, annual_pass 
-       FROM customers 
+    const [membershipResults] = await connection.execute(
+      `SELECT membership_end_date, annual_pass
+       FROM customers
        WHERE customer_id = ? AND annual_pass = 'yes' AND membership_end_date >= CURDATE()`,
       [customerId]
     );
+    const existingMembership = membershipResults[0];
 
     if (existingMembership) {
       // Check if membership expires within 30 days
-      const [dateCheck] = await query<any[]>(
+      const [dateCheckResults] = await connection.execute(
         `SELECT DATEDIFF(membership_end_date, CURDATE()) as days_until_expiry
-         FROM customers 
+         FROM customers
          WHERE customer_id = ?`,
         [customerId]
       );
+      const dateCheck = dateCheckResults[0];
 
       const daysUntilExpiry = dateCheck?.days_until_expiry || 0;
 
@@ -267,14 +300,12 @@ export class CheckoutService {
     // SECURITY: Payment method storage disabled - no card data will be saved
     // Auto-renewal disabled until payment gateway integration (Stripe/Braintree)
     console.log('[MEMBERSHIP] Payment method storage disabled for security');
-    if (shouldSavePaymentMethod) {
-      console.log('[MEMBERSHIP] In production, this would create a Stripe PaymentMethod');
-    }
 
     // Calculate membership dates (start today, end 1 year from today)
-    const [dateResult] = await query<any[]>(
+    const [dateResults] = await connection.execute(
       'SELECT CURDATE() as start_date, DATE_ADD(CURDATE(), INTERVAL 1 YEAR) as end_date'
     );
+    const dateResult = dateResults[0];
     const actualStartDate = dateResult?.start_date;
     const actualEndDate = dateResult?.end_date;
 
@@ -283,10 +314,10 @@ export class CheckoutService {
     const autoRenew = false;
 
     // Update customer membership
-    await query(
-      `UPDATE customers 
-       SET annual_pass = 'yes', 
-           membership_start_date = CURDATE(), 
+    await connection.execute(
+      `UPDATE customers
+       SET annual_pass = 'yes',
+           membership_start_date = CURDATE(),
            membership_end_date = DATE_ADD(CURDATE(), INTERVAL 1 YEAR),
            membership_auto_renew = ?
        WHERE customer_id = ?`,
@@ -295,7 +326,7 @@ export class CheckoutService {
 
     // Record purchase in history table
     const currentDateTime = getCurrentDateTime();
-    await query(
+    await connection.execute(
       `INSERT INTO membership_purchases
        (customer_id, purchase_date, start_date, end_date, price, payment_method, payment_method_id)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
