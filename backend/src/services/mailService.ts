@@ -115,7 +115,7 @@ export const initMailService = async () => {
     );
   } else if (mode === "api") {
     // ============================================================
-    // API MODE: Brevo API (works on Railway - no SMTP ports needed!)
+    // API MODE: Brevo API (uses HTTPS - no SMTP ports needed!)
     // ============================================================
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
@@ -130,11 +130,11 @@ export const initMailService = async () => {
     brevoApiClient = apiInstance;
 
     console.log(
-      "✅ [BREVO API] Email service ready (uses HTTPS - works on Railway!)"
+      "✅ [BREVO API] Email service ready (uses HTTPS)"
     );
   } else if (mode === "smtp") {
     // ============================================================
-    // SMTP MODE: Brevo SMTP (may not work on Railway free tier!)
+    // SMTP MODE: Brevo SMTP
     // ============================================================
     transporter = nodemailer.createTransport({
       host: process.env.BREVO_HOST,
@@ -149,12 +149,12 @@ export const initMailService = async () => {
     try {
       await transporter.verify();
       console.log(
-        "✅ [BREVO SMTP] Mail transporter ready (may be blocked on Railway free tier)"
+        "✅ [BREVO SMTP] Mail transporter ready"
       );
     } catch (error) {
       console.error("❌ [BREVO SMTP] Error verifying mail transporter:", error);
       console.error(
-        "💡 TIP: If on Railway, try MAIL_SERVICE=api instead of smtp"
+        "💡 TIP: Try MAIL_SERVICE=api instead of smtp if SMTP is blocked"
       );
     }
   } else {
@@ -162,8 +162,7 @@ export const initMailService = async () => {
     // INVALID MODE
     // ============================================================
     throw new Error(
-      `Invalid MAIL_SERVICE="${mode}". Valid options: "ethereal", "api", "smtp". ` +
-        `For Railway, use MAIL_SERVICE=api`
+      `Invalid MAIL_SERVICE="${mode}". Valid options: "ethereal", "api", "smtp".`
     );
   }
 };

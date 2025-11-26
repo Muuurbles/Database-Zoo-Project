@@ -50,10 +50,10 @@ app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Rate Limiting
-// General API rate limiter - 100 requests per 15 minutes per IP
+// General API rate limiter - 1000 requests per 15 minutes per IP
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Max 100 requests per window per IP
+  max: 1000, // Max 1000 requests per window per IP
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later'
@@ -62,10 +62,10 @@ const apiLimiter = rateLimit({
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
 });
 
-// Strict rate limiter for authentication endpoints - 5 attempts per 15 minutes
+// Strict rate limiter for authentication endpoints - 50 attempts per 15 minutes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 50,
   skipSuccessfulRequests: true, // Don't count successful logins
   message: {
     success: false,
@@ -73,10 +73,10 @@ const authLimiter = rateLimit({
   },
 });
 
-// Registration rate limiter - 3 accounts per hour per IP
+// Registration rate limiter - 20 accounts per hour per IP
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3,
+  max: 20,
   message: {
     success: false,
     message: 'Too many accounts created from this IP, please try again later'

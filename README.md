@@ -29,7 +29,7 @@ npm run install:all
 cd backend
 cp .env.example .env
 ```
-The default values connect to the shared Railway database and work out of the box. Note: Brevo is used to send emails, and works in the hosted version of the website. To send emails with a local build, you need to add a brevo API key to the .env
+Configure your MySQL database connection and other settings. Note: Brevo is used to send emails. To enable email functionality, add a Brevo API key to the .env file
 
 **Frontend** (`frontend/.env.local`):
 ```bash
@@ -67,9 +67,9 @@ This project implements production-grade security measures:
 - **JWT Authentication**: Secure token-based authentication with configurable expiration
 - **Role-Based Access Control**: Granular permissions based on user roles (manager, keeper, veterinarian, etc.)
 - **Rate Limiting**:
-  - API endpoints: 100 requests per 15 minutes per IP
-  - Login attempts: 5 attempts per 15 minutes per IP (successful logins don't count)
-  - Registration: 3 accounts per hour per IP
+  - API endpoints: 1000 requests per 15 minutes per IP
+  - Login attempts: 50 attempts per 15 minutes per IP (successful logins don't count)
+  - Registration: 20 accounts per hour per IP
 
 ### Database Security
 - **Parameterized Queries**: All database queries use prepared statements to prevent SQL injection

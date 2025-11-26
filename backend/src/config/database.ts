@@ -3,6 +3,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Enable query performance monitoring in development
+const ENABLE_QUERY_LOGGING = process.env.NODE_ENV === 'development';
+const SLOW_QUERY_THRESHOLD_MS = 100; // Log queries that take longer than 100ms
+
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || '3306'),
@@ -12,18 +16,35 @@ export const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  // UTC-6 (Central Standard Time) for all connections, works locally and on Railway
+  // UTC-6 (Central Standard Time) for all connections
   timezone: '-06:00',
 });
 
 export const query = async <T = any>(sql: string, params?: any[]): Promise<T> => {
-  const [results] = await pool.execute(sql, params);
-  return results as T;
+  const startTime = Date.now();
+
+  try {
+    const [results] = await pool.execute(sql, params);
+    const executionTime = Date.now() - startTime;
+
+    // Log slow queries in development
+    if (ENABLE_QUERY_LOGGING && executionTime > SLOW_QUERY_THRESHOLD_MS) {
+      console.warn(`⚠️  SLOW QUERY (${executionTime}ms):`, sql.substring(0, 100) + '...');
+      if (params) console.warn('   Parameters:', params);
+    }
+
+    return results as T;
+  } catch (error) {
+    const executionTime = Date.now() - startTime;
+    console.error(`❌ QUERY FAILED (${executionTime}ms):`, sql.substring(0, 100) + '...');
+    if (params) console.error('   Parameters:', params);
+    throw error;
+  }
 };
 
 /**
  * Get current datetime in MySQL format (YYYY-MM-DD HH:mm:ss) in UTC-6 timezone
- * This ensures consistency across local and Railway deployments
+ * This ensures consistency across different environments
  * Must be used instead of CURRENT_TIMESTAMP since DB server may be in different timezone
  */
 export const getCurrentDateTime = (): string => {
