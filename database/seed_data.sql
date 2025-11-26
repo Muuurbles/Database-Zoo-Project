@@ -1,5 +1,4 @@
 -- Zoo Management System - Comprehensive Seed Data
--- Consolidated database initialization with all test data
 -- Includes real image URLs for visual demonstrations
 
 USE zoo_database;

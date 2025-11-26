@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { dashboardService, RecentActivity, KeeperAssignment, VeterinarianAnimal } from '@/services/dashboard.service';
-import { DashboardStats } from '@/types';
 import { StatsCard } from '@/components/admin/StatsCard';
 import { EventCancellationWidget } from '@/components/admin/EventCancellationWidget';
 import { Button } from '@/components/ui/button';
@@ -25,86 +23,23 @@ import {
   Coffee,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useDashboardStats, useRecentActivity, useKeeperAssignments, useVeterinarianAnimals } from '@/hooks/useDashboard';
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalAnimals: 0,
-    totalEmployees: 0,
-    upcomingEvents: 0,
-    activeHabitats: 0,
-    todaysVisitors: 0,
-  });
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [showActivityModal, setShowActivityModal] = useState(false);
-  const [keeperAssignments, setKeeperAssignments] = useState<KeeperAssignment[]>([]);
-  const [assignmentsLoading, setAssignmentsLoading] = useState(true);
-  const [vetAnimals, setVetAnimals] = useState<VeterinarianAnimal[]>([]);
-  const [vetAnimalsLoading, setVetAnimalsLoading] = useState(true);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadStats();
-      loadRecentActivity();
-      if (user?.job_role === 'keeper') {
-        loadKeeperAssignments();
-      }
-      if (user?.job_role === 'veterinarian') {
-        loadVeterinarianAnimals();
-      }
-    }
-  }, [isAuthenticated, user?.job_role]);
+  // React Query hooks - automatic caching and refetching!
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: recentActivities = [], isLoading: activitiesLoading } = useRecentActivity();
+  const { data: keeperAssignments = [], isLoading: assignmentsLoading } = useKeeperAssignments();
+  const { data: vetAnimals = [], isLoading: vetAnimalsLoading } = useVeterinarianAnimals();
 
-  const loadStats = async () => {
-    try {
-      setStatsLoading(true);
-      const data = await dashboardService.getStats();
-      setStats(data);
-    } catch (error) {
-      console.error('Failed to load dashboard stats:', error);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
-
-  const loadRecentActivity = async () => {
-    try {
-      setActivitiesLoading(true);
-      const data = await dashboardService.getRecentActivity();
-      setRecentActivities(data);
-    } catch (error) {
-      console.error('Failed to load recent activity:', error);
-    } finally {
-      setActivitiesLoading(false);
-    }
-  };
-
-  const loadKeeperAssignments = async () => {
-    try {
-      setAssignmentsLoading(true);
-      const data = await dashboardService.getKeeperAssignments();
-      setKeeperAssignments(data);
-    } catch (error) {
-      console.error('Failed to load keeper assignments:', error);
-    } finally {
-      setAssignmentsLoading(false);
-    }
-  };
-
-  const loadVeterinarianAnimals = async () => {
-    try {
-      setVetAnimalsLoading(true);
-      const data = await dashboardService.getVeterinarianAnimals();
-      setVetAnimals(data);
-    } catch (error) {
-      console.error('Failed to load veterinarian animals:', error);
-    } finally {
-      setVetAnimalsLoading(false);
-    }
-  };
+  // All loading functions removed! React Query handles data fetching automatically.
+  // - Automatic caching and deduplication
+  // - Background refetching when data becomes stale
+  // - No manual loading state management needed
 
   const getTimeAgo = (timestamp: string): string => {
     const now = new Date();
@@ -255,7 +190,7 @@ export default function AdminDashboard() {
           {(user?.job_role === 'manager' || user?.job_role === 'keeper' || user?.job_role === 'veterinarian') && (
             <StatsCard
               title="Total Animals"
-              value={stats.totalAnimals}
+              value={stats?.totalAnimals || 0}
               icon={Leaf}
               iconColor="text-sea_green-600"
             />
