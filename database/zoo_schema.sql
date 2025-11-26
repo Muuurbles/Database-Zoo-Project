@@ -1,8 +1,4 @@
 -- Zoo Database Schema
--- Team Project Database Design
-
--- Use Railway's default database so it shows up in the dashboard
-USE railway;
 
 -- This script is designed to be rerunnable. It will drop the existing database to ensure a clean start.
 DROP DATABASE IF EXISTS zoo_database;
@@ -293,7 +289,7 @@ CREATE TABLE `gift_shop_sales_transactions` (
     `employee_id` INT,
     `sale_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `total_amount` DECIMAL(10, 2) NOT NULL,
-    `payment_method` ENUM('cash', 'credit', 'debit'), -- NOTE: payment_method is not currently displayed in financial reports and is kept for historical tracking
+    `payment_method` ENUM('cash', 'credit', 'debit'), -- NOTE: payment_method is not currently displayed in financial reports and is not really used anywhere in the system
     `status` ENUM('completed', 'returned') DEFAULT 'completed',
     FOREIGN KEY (`gift_shop_id`) REFERENCES `gift_shops`(`gift_shop_id`),
     FOREIGN KEY (`customer_id`) REFERENCES `customers`(`customer_id`) ON DELETE SET NULL,

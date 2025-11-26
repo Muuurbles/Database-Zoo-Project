@@ -2,10 +2,6 @@
 
 A web-based database system for managing zoo operations including animals, staff, customers, ticket sales, events, and facilities. Built with node.js, React, and MySQL.
 
-# Files in Submission
-- SQL Dump File of Populated Database
-- Project Document: What Data can be Added/Modified/Deleted, User Roles, Semantic Constraints and Triggers, Queries/Reports
-
 ## Setup
 
 ### Prerequisites
