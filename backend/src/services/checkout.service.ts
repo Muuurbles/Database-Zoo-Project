@@ -21,7 +21,6 @@ export class CheckoutService {
     try {
       // Start transaction
       await connection.beginTransaction();
-      console.log('[CHECKOUT] Transaction started for customer:', customerId);
 
       // SECURITY: Payment method storage disabled - see savePaymentMethod() for details
       // Auto-renewal requires payment gateway integration (Stripe/Braintree)
@@ -41,8 +40,6 @@ export class CheckoutService {
 
       // Process each cart item within transaction
       for (const item of checkoutData.items) {
-        console.log(`[CHECKOUT] Processing ${item.item_type}:`, item.item_id);
-
         switch (item.item_type) {
           case 'ticket':
             await this.createTicketRecords(item, customerId, checkoutData.payment_method, connection);
@@ -87,7 +84,6 @@ export class CheckoutService {
 
       // Commit transaction - all operations succeeded
       await connection.commit();
-      console.log('[CHECKOUT] Transaction committed successfully');
 
       return {
         success: true,
@@ -104,7 +100,6 @@ export class CheckoutService {
     } finally {
       // Always release connection back to pool
       connection.release();
-      console.log('[CHECKOUT] Database connection released');
     }
   }
 

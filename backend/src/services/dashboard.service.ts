@@ -3,68 +3,38 @@ import { query } from '../config/database';
 export class DashboardService {
   // Public stats for landing page (no authentication required)
   static async getPublicStats() {
-    // Get total species count (distinct species)
-    const [speciesResult] = await query<any[]>(
-      'SELECT COUNT(DISTINCT species) as count FROM animals WHERE active_status = "active" AND deleted_at IS NULL'
+    // Optimized: Get all public stats in a single query instead of 3 separate queries
+    const [stats] = await query<any[]>(
+      `SELECT
+        (SELECT COUNT(DISTINCT species) FROM animals WHERE active_status = "active" AND deleted_at IS NULL) as totalSpecies,
+        (SELECT COUNT(*) FROM habitats WHERE status = "active" AND deleted_at IS NULL) as totalHabitats,
+        (SELECT COUNT(*) FROM tickets WHERE YEAR(visit_date) = YEAR(CURDATE())) as annualVisitors`
     );
-    const totalSpecies = speciesResult.count;
-
-    // Get total habitats
-    const [habitatsResult] = await query<any[]>(
-      'SELECT COUNT(*) as count FROM habitats WHERE status = "active" AND deleted_at IS NULL'
-    );
-    const totalHabitats = habitatsResult.count;
-
-    // Get annual visitors (sum of all tickets from current year)
-    const [visitorsResult] = await query<any[]>(
-      'SELECT COUNT(*) as count FROM tickets WHERE YEAR(visit_date) = YEAR(CURDATE())'
-    );
-    const annualVisitors = visitorsResult.count;
 
     return {
-      totalSpecies,
-      totalHabitats,
-      annualVisitors,
+      totalSpecies: stats.totalSpecies,
+      totalHabitats: stats.totalHabitats,
+      annualVisitors: stats.annualVisitors,
     };
   }
 
   static async getStats() {
-    // Get total animals
-    const [animalsResult] = await query<any[]>(
-      'SELECT COUNT(*) as count FROM animals WHERE active_status = "active"'
+    // Optimized: Get all stats in a single query instead of 5 separate queries
+    const [stats] = await query<any[]>(
+      `SELECT
+        (SELECT COUNT(*) FROM animals WHERE active_status = "active") as totalAnimals,
+        (SELECT COUNT(*) FROM employees WHERE status = "active") as totalEmployees,
+        (SELECT COUNT(*) FROM events WHERE event_date >= CURDATE()) as upcomingEvents,
+        (SELECT COUNT(*) FROM habitats WHERE status = "active") as activeHabitats,
+        (SELECT COUNT(*) FROM tickets WHERE visit_date = CURDATE()) as todaysVisitors`
     );
-    const totalAnimals = animalsResult.count;
-
-    // Get total employees
-    const [employeesResult] = await query<any[]>(
-      'SELECT COUNT(*) as count FROM employees WHERE status = "active"'
-    );
-    const totalEmployees = employeesResult.count;
-
-    // Get upcoming events
-    const [eventsResult] = await query<any[]>(
-      'SELECT COUNT(*) as count FROM events WHERE event_date >= CURDATE()'
-    );
-    const upcomingEvents = eventsResult.count;
-
-    // Get active habitats
-    const [habitatsResult] = await query<any[]>(
-      'SELECT COUNT(*) as count FROM habitats WHERE status = "active"'
-    );
-    const activeHabitats = habitatsResult.count;
-
-    // Get today's visitors (tickets with visit_date = today)
-    const [visitorsResult] = await query<any[]>(
-      'SELECT COUNT(*) as count FROM tickets WHERE visit_date = CURDATE()'
-    );
-    const todaysVisitors = visitorsResult.count;
 
     return {
-      totalAnimals,
-      totalEmployees,
-      upcomingEvents,
-      activeHabitats,
-      todaysVisitors,
+      totalAnimals: stats.totalAnimals,
+      totalEmployees: stats.totalEmployees,
+      upcomingEvents: stats.upcomingEvents,
+      activeHabitats: stats.activeHabitats,
+      todaysVisitors: stats.todaysVisitors,
     };
   }
 
