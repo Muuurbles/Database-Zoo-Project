@@ -449,6 +449,58 @@ CREATE INDEX `idx_gift_shops_deleted` ON `gift_shops`(`deleted_at`);
 CREATE INDEX `idx_cafes_deleted` ON `cafes`(`deleted_at`);
 CREATE INDEX `idx_tickets_deleted` ON `tickets`(`deleted_at`);
 
+-- ====================================================================
+-- PERFORMANCE INDEXES - Added for frequently queried columns
+-- ====================================================================
+
+-- Animals: Filtered by health_status and active_status frequently
+CREATE INDEX `idx_animal_health_status` ON `animals`(`health_status`, `active_status`);
+
+-- Animals: Queries that filter deleted + active status together
+CREATE INDEX `idx_animal_active_deleted` ON `animals`(`active_status`, `deleted_at`);
+
+-- Tickets: Purchase date used in financial reports
+CREATE INDEX `idx_ticket_purchase_date` ON `tickets`(`purchase_date`);
+
+-- Tickets: Visit date range queries common
+CREATE INDEX `idx_ticket_date_range` ON `tickets`(`visit_date`, `purchase_date`);
+
+-- Event registrations: Lookup by event_id (cancellations, participant counts)
+CREATE INDEX `idx_event_reg_event` ON `event_registrations`(`event_id`, `payment_status`);
+
+-- Event registrations: Date range queries for reports
+CREATE INDEX `idx_event_reg_date` ON `event_registrations`(`registration_date`);
+
+-- Gift shop sales: Date used in financial reports
+CREATE INDEX `idx_gift_shop_sale_date` ON `gift_shop_sales_transactions`(`sale_date`, `status`);
+
+-- Gift shop sale items: Transaction lookup
+CREATE INDEX `idx_gift_shop_items_trans` ON `gift_shop_sale_items`(`transaction_id`);
+
+-- Cafe sales: Timestamp used in financial reports
+CREATE INDEX `idx_cafe_sale_timestamp` ON `cafe_sales`(`sale_timestamp`, `status`);
+
+-- Cafe sales: Cafe-specific queries
+CREATE INDEX `idx_cafe_sale_cafe` ON `cafe_sales`(`cafe_id`, `sale_timestamp`);
+
+-- Donations: Date used in reports
+CREATE INDEX `idx_donation_date` ON `donations`(`donation_date`);
+
+-- Feeding logs: Animal history lookups
+CREATE INDEX `idx_feeding_animal` ON `feeding_logs`(`animal_id`, `feeding_time`);
+
+-- Zookeeper assignments: Keeper dashboard queries
+CREATE INDEX `idx_assignment_keeper` ON `zookeeper_assignments`(`keeper_id`);
+
+-- Habitats: Status filtering common
+CREATE INDEX `idx_habitat_status` ON `habitats`(`status`, `deleted_at`);
+
+-- Employees: Active employee queries
+CREATE INDEX `idx_employee_status` ON `employees`(`status`, `deleted_at`);
+
+-- User accounts: Email login lookups
+CREATE INDEX `idx_user_email` ON `user_accounts`(`email`);
+
 -- Trigger to notify customers of expiring memberships (within 30 days) and auto-expire past memberships
 DELIMITER //
 CREATE TRIGGER trg_membership_expiration_notification
