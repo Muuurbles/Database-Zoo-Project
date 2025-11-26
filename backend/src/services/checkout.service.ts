@@ -14,27 +14,8 @@ export class CheckoutService {
       throw new Error('Cart is empty');
     }
 
-    // Check if any membership has auto-renewal enabled
-    const hasAutoRenewMembership = checkoutData.items.some(
-      item => item.item_type === 'membership' && 
-              (item.metadata?.auto_renew !== undefined ? item.metadata.auto_renew : true)
-    );
-
-    // If auto-renewal is enabled, ensure payment method will be saved
-    if (hasAutoRenewMembership) {
-      // Check if customer already has a payment method
-      const [existingPayment] = await query<any[]>(
-        'SELECT payment_method_id FROM customer_payment_methods WHERE customer_id = ?',
-        [customerId]
-      );
-
-      // If no existing payment method and not saving one now, throw error
-      if (!existingPayment && (!checkoutData.save_payment_method || !checkoutData.payment_data)) {
-        throw new Error('A payment method must be saved to enable auto-renewal. Please check "Save payment method" during checkout.');
-      }
-    }
-
-    // Save payment method if requested
+    // SECURITY: Payment method storage disabled - see savePaymentMethod() for details
+    // Auto-renewal requires payment gateway integration (Stripe/Braintree)
     if (checkoutData.save_payment_method && checkoutData.payment_data) {
       await this.savePaymentMethod(customerId, checkoutData.payment_data);
     }
@@ -283,57 +264,11 @@ export class CheckoutService {
       }
     }
 
-    // Save payment method only if explicitly requested by user
-    if (shouldSavePaymentMethod && paymentData) {
-      const [existing] = await query<any[]>(
-        'SELECT payment_method_id FROM customer_payment_methods WHERE customer_id = ?',
-        [customerId]
-      );
-
-      if (existing) {
-        // Update existing payment method
-        await query(
-          `UPDATE customer_payment_methods 
-           SET card_number = ?, cardholder_name = ?, expiry_month = ?, expiry_year = ?, 
-               cvv = ?, billing_address = ?, billing_city = ?, billing_state = ?, billing_zip = ?,
-               updated_at = NOW()
-           WHERE customer_id = ?`,
-          [
-            paymentData.cardNumber,
-            paymentData.cardholderName,
-            paymentData.expiryMonth,
-            paymentData.expiryYear,
-            paymentData.cvv || null,
-            paymentData.billingAddress,
-            paymentData.billingCity,
-            paymentData.billingState,
-            paymentData.billingZip,
-            customerId,
-          ]
-        );
-        paymentMethodId = existing.payment_method_id;
-      } else {
-        // Create new payment method
-        const result = await query<any>(
-          `INSERT INTO customer_payment_methods 
-           (customer_id, card_number, cardholder_name, expiry_month, expiry_year, cvv, 
-            billing_address, billing_city, billing_state, billing_zip)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            customerId,
-            paymentData.cardNumber,
-            paymentData.cardholderName,
-            paymentData.expiryMonth,
-            paymentData.expiryYear,
-            paymentData.cvv || null,
-            paymentData.billingAddress,
-            paymentData.billingCity,
-            paymentData.billingState,
-            paymentData.billingZip,
-          ]
-        );
-        paymentMethodId = result.insertId;
-      }
+    // SECURITY: Payment method storage disabled - no card data will be saved
+    // Auto-renewal disabled until payment gateway integration (Stripe/Braintree)
+    console.log('[MEMBERSHIP] Payment method storage disabled for security');
+    if (shouldSavePaymentMethod) {
+      console.log('[MEMBERSHIP] In production, this would create a Stripe PaymentMethod');
     }
 
     // Calculate membership dates (start today, end 1 year from today)
@@ -343,36 +278,9 @@ export class CheckoutService {
     const actualStartDate = dateResult?.start_date;
     const actualEndDate = dateResult?.end_date;
 
-    // Get auto-renewal preference from metadata (default to TRUE if not specified)
-    const autoRenew = metadata.auto_renew !== undefined ? metadata.auto_renew : true;
-
-    // If auto-renewal is enabled, ensure payment method exists
-    if (autoRenew) {
-      // Check if payment method was just saved or already exists
-      if (!paymentMethodId) {
-        // Check if customer already has a saved payment method
-        const [existingPayment] = await query<any[]>(
-          'SELECT payment_method_id FROM customer_payment_methods WHERE customer_id = ?',
-          [customerId]
-        );
-        
-        if (!existingPayment) {
-          throw new Error('A payment method must be saved to enable auto-renewal. Please check "Save payment method" during checkout.');
-        }
-        paymentMethodId = existingPayment.payment_method_id;
-      }
-    } else {
-      // If auto-renewal is off and payment method wasn't saved, try to use existing one for the purchase record
-      if (!paymentMethodId && paymentData) {
-        const [existingPayment] = await query<any[]>(
-          'SELECT payment_method_id FROM customer_payment_methods WHERE customer_id = ?',
-          [customerId]
-        );
-        if (existingPayment) {
-          paymentMethodId = existingPayment.payment_method_id;
-        }
-      }
-    }
+    // SECURITY: Auto-renewal disabled until payment gateway integration
+    // Requires secure tokenized payment method storage (Stripe/Braintree)
+    const autoRenew = false;
 
     // Update customer membership
     await query(
@@ -396,60 +304,44 @@ export class CheckoutService {
   }
 
   /**
-   * Save payment method for customer
-   * 
-   * @SECURITY_RISK - This method stores raw, unencrypted credit card information
-   * including the CVV. This is a major security vulnerability and is not PCI compliant.
-   * This is for demonstration purposes only in a student project.
-   * In a real-world application, use a secure payment gateway like Stripe or Braintree.
+   * Payment Method Storage - DISABLED FOR SECURITY
+   *
+   * @SECURITY_NOTE: This student project does not store credit card information.
+   * Storing raw credit card data (especially CVV) violates PCI DSS compliance.
+   *
+   * PRODUCTION IMPLEMENTATION WOULD USE:
+   * =====================================
+   *
+   * **Stripe (Recommended)**
+   * - Stripe.js tokenizes cards in browser (card data never touches your server)
+   * - Payment Methods API for storing tokenized cards
+   * - Automatic PCI DSS compliance
+   * - Subscriptions API for recurring billing
+   * - Example: const paymentMethod = await stripe.paymentMethods.create({ type: 'card', card: cardElement });
+   *
+   * **Braintree**
+   * - PayPal-backed payment processing
+   * - Drop-in UI handles all card input
+   * - Vault API for storing payment methods
+   * - Built-in fraud protection
+   *
+   * **Square**
+   * - Web Payments SDK for card tokenization
+   * - Cards API for secure storage
+   * - Unified platform for online and in-person payments
+   *
+   * CURRENT BEHAVIOR:
+   * ================
+   * This method is a no-op. Payment flow simulated for demonstration only.
+   * No sensitive card data is transmitted to or stored by the server.
    */
   private static async savePaymentMethod(customerId: number, paymentData: any): Promise<void> {
-    // Check if payment method already exists
-    const [existing] = await query<any[]>(
-      'SELECT payment_method_id FROM customer_payment_methods WHERE customer_id = ?',
-      [customerId]
-    );
+    console.log('[PAYMENT] Payment method save requested for customer:', customerId);
+    console.log('[PAYMENT] In production, this would create a Stripe PaymentMethod token');
+    console.log('[PAYMENT] No credit card data is stored in this student project');
 
-    if (existing) {
-      // Update existing
-      await query(
-        `UPDATE customer_payment_methods
-         SET card_number = ?, cardholder_name = ?, expiry_month = ?, expiry_year = ?,
-             cvv = ?, billing_address = ?, billing_city = ?, billing_state = ?, billing_zip = ?
-         WHERE customer_id = ?`,
-        [
-          paymentData.cardNumber,
-          paymentData.cardholderName,
-          paymentData.expiryMonth,
-          paymentData.expiryYear,
-          paymentData.cvv,
-          paymentData.billingAddress,
-          paymentData.billingCity,
-          paymentData.billingState,
-          paymentData.billingZip,
-          customerId,
-        ]
-      );
-    } else {
-      // Create new
-      await query(
-        `INSERT INTO customer_payment_methods
-         (customer_id, card_number, cardholder_name, expiry_month, expiry_year, cvv, billing_address, billing_city, billing_state, billing_zip)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          customerId,
-          paymentData.cardNumber,
-          paymentData.cardholderName,
-          paymentData.expiryMonth,
-          paymentData.expiryYear,
-          paymentData.cvv,
-          paymentData.billingAddress,
-          paymentData.billingCity,
-          paymentData.billingState,
-          paymentData.billingZip,
-        ]
-      );
-    }
+    // No-op - do not store any payment information
+    return;
   }
 }
 
