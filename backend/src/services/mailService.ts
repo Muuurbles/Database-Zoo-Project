@@ -4,6 +4,9 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Control email logging verbosity
+const ENABLE_EMAIL_LOGGING = process.env.ENABLE_EMAIL_LOGGING === 'true';
+
 let transporter: nodemailer.Transporter | null = null;
 let brevoApiClient: brevo.TransactionalEmailsApi | null = null;
 
@@ -32,7 +35,7 @@ let dailyStats: EmailStats = {
 function checkAndResetDailyStats() {
   const today = new Date().toISOString().split("T")[0];
   if (dailyStats.date !== today) {
-    if (dailyStats.count > 0) {
+    if (dailyStats.count > 0 && ENABLE_EMAIL_LOGGING) {
       console.log(
         `📊 Previous day (${dailyStats.date}) email stats: ${dailyStats.count} emails sent`
       );
@@ -57,8 +60,11 @@ function trackEmail(to: string, subject: string, isTest: boolean) {
     mode: isTest ? "test" : "production",
   });
 
-  const mode = isTest ? "TEST" : "PRODUCTION";
-  console.log(`📧 [${mode}] Email #${dailyStats.count} sent to: ${to}`);
+  // Only log individual emails if logging is enabled
+  if (ENABLE_EMAIL_LOGGING) {
+    const mode = isTest ? "TEST" : "PRODUCTION";
+    console.log(`📧 [${mode}] Email #${dailyStats.count} sent to: ${to}`);
+  }
 
   // Warning at 80% of limit (240 emails)
   if (!isTest && dailyStats.count >= 240 && dailyStats.count < 300) {
@@ -115,7 +121,7 @@ export const initMailService = async () => {
     );
   } else if (mode === "api") {
     // ============================================================
-    // API MODE: Brevo API (works on Railway - no SMTP ports needed!)
+    // API MODE: Brevo API (uses HTTPS - no SMTP ports needed!)
     // ============================================================
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
@@ -130,11 +136,11 @@ export const initMailService = async () => {
     brevoApiClient = apiInstance;
 
     console.log(
-      "✅ [BREVO API] Email service ready (uses HTTPS - works on Railway!)"
+      "✅ [BREVO API] Email service ready (uses HTTPS)"
     );
   } else if (mode === "smtp") {
     // ============================================================
-    // SMTP MODE: Brevo SMTP (may not work on Railway free tier!)
+    // SMTP MODE: Brevo SMTP
     // ============================================================
     transporter = nodemailer.createTransport({
       host: process.env.BREVO_HOST,
@@ -149,12 +155,12 @@ export const initMailService = async () => {
     try {
       await transporter.verify();
       console.log(
-        "✅ [BREVO SMTP] Mail transporter ready (may be blocked on Railway free tier)"
+        "✅ [BREVO SMTP] Mail transporter ready"
       );
     } catch (error) {
       console.error("❌ [BREVO SMTP] Error verifying mail transporter:", error);
       console.error(
-        "💡 TIP: If on Railway, try MAIL_SERVICE=api instead of smtp"
+        "💡 TIP: Try MAIL_SERVICE=api instead of smtp if SMTP is blocked"
       );
     }
   } else {
@@ -162,8 +168,7 @@ export const initMailService = async () => {
     // INVALID MODE
     // ============================================================
     throw new Error(
-      `Invalid MAIL_SERVICE="${mode}". Valid options: "ethereal", "api", "smtp". ` +
-        `For Railway, use MAIL_SERVICE=api`
+      `Invalid MAIL_SERVICE="${mode}". Valid options: "ethereal", "api", "smtp".`
     );
   }
 };
@@ -212,7 +217,9 @@ export const sendMail = async (inputs: MailOptions) => {
       // Track email after successful send
       trackEmail(inputs.to, inputs.subject, false);
 
-      console.log("Email sent via API: " + response.body.messageId);
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log("Email sent via API: " + response.body.messageId);
+      }
       return response;
     } catch (error) {
       console.error("Error sending email via API:", error);
@@ -236,9 +243,11 @@ export const sendMail = async (inputs: MailOptions) => {
       const isTestMode = mode === "ethereal";
       trackEmail(inputs.to, inputs.subject, isTestMode);
 
-      console.log("Email sent: " + info.response);
-      if (isTestMode) {
-        console.log("Preview URL: " + nodemailer.getTestMessageUrl(info));
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log("Email sent: " + info.response);
+        if (isTestMode) {
+          console.log("Preview URL: " + nodemailer.getTestMessageUrl(info));
+        }
       }
 
       return info;

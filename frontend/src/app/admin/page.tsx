@@ -198,7 +198,7 @@ export default function AdminDashboard() {
           {user?.job_role === 'manager' && (
             <StatsCard
               title="Total Employees"
-              value={stats.totalEmployees}
+              value={stats?.totalEmployees || 0}
               icon={Users}
               iconColor="text-dark_spring_green-600"
             />
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
           {(user?.job_role === 'manager' || user?.job_role === 'coordinator' || user?.job_role === 'guide' || user?.job_role === 'security') && (
             <StatsCard
               title="Upcoming Events"
-              value={stats.upcomingEvents}
+              value={stats?.upcomingEvents || 0}
               icon={Calendar}
               iconColor="text-persian_orange-600"
             />
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
           {(user?.job_role === 'manager' || user?.job_role === 'keeper' || user?.job_role === 'veterinarian' || user?.job_role === 'maintenance') && (
             <StatsCard
               title="Active Habitats"
-              value={stats.activeHabitats}
+              value={stats?.activeHabitats || 0}
               icon={MapPin}
               iconColor="text-sea_green-600"
             />
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
           {user?.job_role === 'manager' && (
             <StatsCard
               title="Today's Visitors"
-              value={stats.todaysVisitors}
+              value={stats?.todaysVisitors || 0}
               icon={UserCircle}
               iconColor="text-dark_spring_green-600"
             />
@@ -235,7 +235,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatsCard
             title="Today's Visitors"
-            value={stats.todaysVisitors}
+            value={stats?.todaysVisitors || 0}
             icon={UserCircle}
             iconColor="text-dark_spring_green-600"
           />

@@ -35,15 +35,11 @@ class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    console.log('User:', user);
-
     // Step 2: Check password from separate passwords table
     const [passwordRecord] = await query<any[]>(
       `SELECT password_hash FROM passwords WHERE account_id = ?`,
       [user.account_id]
     );
-
-    console.log('Password Record:', passwordRecord);
 
     // Bcrypt password comparison
     const isPasswordValid = passwordRecord && await bcrypt.compare(password, passwordRecord.password_hash);

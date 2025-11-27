@@ -14,6 +14,9 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { sendMail } from './mailService';
 import { NotificationModel } from '../models/notification.model';
 
+// Control email logging verbosity
+const ENABLE_EMAIL_LOGGING = process.env.ENABLE_EMAIL_LOGGING === 'true';
+
 interface Notification extends RowDataPacket {
   notification_id: number;
   customer_id: number;
@@ -36,7 +39,9 @@ export class NotificationEmailService {
    */
   static async processPendingEmails(): Promise<void> {
     try {
-      console.log('[Email Service] Processing pending email notifications...');
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log('[Email Service] Processing pending email notifications...');
+      }
 
       // Get all unprocessed alert notifications
       const notifications = await query<Notification[]>(
@@ -49,18 +54,24 @@ export class NotificationEmailService {
       );
 
       if (notifications.length === 0) {
-        console.log('[Email Service] No pending notifications to process.');
+        if (ENABLE_EMAIL_LOGGING) {
+          console.log('[Email Service] No pending notifications to process.');
+        }
         return;
       }
 
-      console.log(`[Email Service] Found ${notifications.length} notifications to process.`);
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log(`[Email Service] Found ${notifications.length} notifications to process.`);
+      }
 
       // Process each notification
       for (const notification of notifications) {
         await this.sendNotificationEmail(notification);
       }
 
-      console.log('[Email Service] Batch processing complete.');
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log('[Email Service] Batch processing complete.');
+      }
     } catch (error) {
       console.error('[Email Service] Error processing pending emails:', error);
       throw error;
@@ -94,7 +105,9 @@ export class NotificationEmailService {
 
       // Skip test emails ending with "@email" to avoid wasting API credits
       if (customer.email.endsWith('@email')) {
-        console.log(`[Email Service] Skipping test email ${customer.email} (ends with @email). Not wasting API credits.`);
+        if (ENABLE_EMAIL_LOGGING) {
+          console.log(`[Email Service] Skipping test email ${customer.email} (ends with @email). Not wasting API credits.`);
+        }
         return;
       }
 
@@ -112,7 +125,9 @@ export class NotificationEmailService {
       // Mark notification as read so it's not sent again
       await NotificationModel.markAsRead(notification.notification_id);
 
-      console.log(`[Email Service] ✅ Email sent to ${customer.email} for notification #${notification.notification_id}`);
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log(`[Email Service] ✅ Email sent to ${customer.email} for notification #${notification.notification_id}`);
+      }
     } catch (error) {
       console.error(`[Email Service] ❌ Failed to send email for notification #${notification.notification_id}:`, error);
     }
@@ -208,7 +223,9 @@ export class NotificationEmailService {
    */
   static async sendEventCancellationEmails(eventId: number): Promise<void> {
     try {
-      console.log(`[Email Service] Sending emails for event ${eventId}...`);
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log(`[Email Service] Sending emails for event ${eventId}...`);
+      }
 
       const notifications = await query<Notification[]>(
         `SELECT n.notification_id, n.customer_id, n.message, n.notification_type, n.created_at
@@ -221,13 +238,17 @@ export class NotificationEmailService {
         [eventId]
       );
 
-      console.log(`[Email Service] Found ${notifications.length} notifications for event ${eventId}.`);
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log(`[Email Service] Found ${notifications.length} notifications for event ${eventId}.`);
+      }
 
       for (const notification of notifications) {
         await this.sendNotificationEmail(notification);
       }
 
-      console.log('[Email Service] Event cancellation emails sent.');
+      if (ENABLE_EMAIL_LOGGING) {
+        console.log('[Email Service] Event cancellation emails sent.');
+      }
     } catch (error) {
       console.error('[Email Service] Error sending event cancellation emails:', error);
       throw error;
