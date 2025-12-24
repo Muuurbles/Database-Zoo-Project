@@ -23,6 +23,32 @@ export class TransactionService {
     ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
+  static async getAllPaginated(page: number = 1, limit: number = 25): Promise<{
+    data: UnifiedTransaction[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> {
+    const allTransactions = await this.getAll();
+    const total = allTransactions.length;
+    const totalPages = Math.ceil(total / limit);
+    const offset = (page - 1) * limit;
+    const data = allTransactions.slice(offset, offset + limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
   private static async getDonations(): Promise<UnifiedTransaction[]> {
     const sql = `
       SELECT
@@ -133,12 +159,12 @@ export class TransactionService {
         let customerName = 'N/A';
         if (row.customer_id) {
           const [c] = await query<any[]>('SELECT first_name, last_name FROM customers WHERE customer_id = ?', [row.customer_id]);
-          if(c) customerName = `${c.first_name} ${c.last_name}`;
+          if (c) customerName = `${c.first_name} ${c.last_name}`;
         }
         let employeeName = 'N/A';
         if (row.employee_id) {
           const [e] = await query<any[]>('SELECT first_name, last_name FROM employees WHERE employee_id = ?', [row.employee_id]);
-          if(e) employeeName = `${e.first_name} ${e.last_name}`;
+          if (e) employeeName = `${e.first_name} ${e.last_name}`;
         }
         return { ...row, customerName, employeeName };
       }));

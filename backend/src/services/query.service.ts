@@ -82,6 +82,7 @@ export class QueryService {
         a.endangerment_status,
         a.weight,
         a.medical_notes,
+        a.image_url,
 
         -- Keeper assignment
         e.employee_id as keeper_id,
@@ -151,6 +152,7 @@ export class QueryService {
         a.endangerment_status,
         a.weight,
         a.medical_notes,
+        a.image_url,
 
         -- Keeper assignment
         e.employee_id as keeper_id,
@@ -283,7 +285,7 @@ export class QueryService {
 
     const queryParams = [];
     if (startDate && endDate) {
-        queryParams.push(startDate, endDate);
+      queryParams.push(startDate, endDate);
     }
     queryParams.push(eventStatus, eventStatus, eventStatus);
 

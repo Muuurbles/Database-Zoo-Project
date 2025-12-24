@@ -23,6 +23,19 @@ import { EntityDetailModal } from '@/components/ui/EntityDetailModal';
 import { ShowDeletedToggle } from '@/components/admin/ShowDeletedToggle';
 import { RestoreConfirmationModal } from '@/components/admin/RestoreConfirmationModal';
 
+// Format phone numbers for display
+const formatPhoneNumber = (phone: string | null | undefined): string => {
+  if (!phone) return 'N/A';
+  const cleaned = phone.replace(/\D/g, '');
+  if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  }
+  if (cleaned.length === 11 && cleaned.startsWith('1')) {
+    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+  }
+  return phone; // Return original if doesn't match expected patterns
+};
+
 export default function CustomersPage() {
   const { isAuthenticated, loading: authLoading, hasRole } = useAuth();
   const router = useRouter();
@@ -130,10 +143,10 @@ export default function CustomersPage() {
   const filteredCustomers = customers
     .filter(customer => customer) // Add this line to filter out null or undefined customers
     .filter(customer =>
-    customer.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      customer.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const getAnnualPassBadge = (annualPass?: string): "default" | "success" => {
     return annualPass === 'yes' ? 'success' : 'default';
@@ -218,7 +231,7 @@ export default function CustomersPage() {
                   {customer.first_name} {customer.last_name}
                 </TableCell>
                 <TableCell>{customer.email || 'N/A'}</TableCell>
-                <TableCell>{customer.phone || 'N/A'}</TableCell>
+                <TableCell>{formatPhoneNumber(customer.phone)}</TableCell>
                 <TableCell>
                   {isDeleted(customer) ? (
                     <Badge variant="danger">Deleted</Badge>
@@ -231,10 +244,10 @@ export default function CustomersPage() {
                 <TableCell className="text-sm text-gray-600">
                   {customer.registration_date
                     ? new Date(customer.registration_date).toLocaleDateString('en-US', {
-                        month: 'numeric',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })
+                      month: 'numeric',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })
                     : 'N/A'}
                 </TableCell>
                 <TableCell className="text-right">
@@ -329,7 +342,7 @@ export default function CustomersPage() {
               { label: 'First Name', key: 'first_name' },
               { label: 'Last Name', key: 'last_name' },
               { label: 'Email', key: 'email' },
-              { label: 'Phone', key: 'phone' },
+              { label: 'Phone', key: 'phone', format: formatPhoneNumber },
               { label: 'Registration Date', key: 'registration_date', type: 'date' as const },
             ],
           },

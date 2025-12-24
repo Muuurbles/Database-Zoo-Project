@@ -43,6 +43,7 @@ type AnimalRow = {
   endangerment_status: string | null;
   weight: number | null;
   medical_notes: string | null;
+  image_url: string | null;
   keeper_id: number | null;
   keeper_name: string | null;
   keeper_shift: string | null;
@@ -140,7 +141,7 @@ export default function AnimalHealthCarePage() {
   const allHabitatOptions = useMemo(() => {
     if (data.length === 0) return [];
     const seen = new Set<number>();
-    const uniqueHabitats: {id: number; name: string}[] = [];
+    const uniqueHabitats: { id: number; name: string }[] = [];
     for (const row of data) {
       if (!seen.has(row.habitat_id)) {
         seen.add(row.habitat_id);
@@ -153,7 +154,7 @@ export default function AnimalHealthCarePage() {
   const allKeeperOptions = useMemo(() => {
     if (data.length === 0) return [];
     const seen = new Set<number>();
-    const uniqueKeepers: {id: number; name: string}[] = [];
+    const uniqueKeepers: { id: number; name: string }[] = [];
     for (const row of data) {
       if (row.keeper_id && !seen.has(row.keeper_id) && row.keeper_name) {
         seen.add(row.keeper_id);
@@ -484,11 +485,10 @@ export default function AnimalHealthCarePage() {
                 key={status}
                 type="button"
                 onClick={() => toggleArrayParam('habitatStatus', status)}
-                className={`px-2.5 py-1 text-sm rounded-md border transition-colors capitalize ${
-                  (params.habitatStatus || []).includes(status)
-                    ? 'bg-sea_green-600 text-white border-sea_green-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-sea_green-400'
-                }`}
+                className={`px-2.5 py-1 text-sm rounded-md border transition-colors capitalize ${(params.habitatStatus || []).includes(status)
+                  ? 'bg-sea_green-600 text-white border-sea_green-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-sea_green-400'
+                  }`}
               >
                 {status}
               </button>
@@ -507,11 +507,10 @@ export default function AnimalHealthCarePage() {
                 key={status}
                 type="button"
                 onClick={() => toggleArrayParam('healthStatus', status)}
-                className={`px-2.5 py-1 text-sm rounded-md border transition-colors capitalize ${
-                  (params.healthStatus || []).includes(status)
-                    ? 'bg-sea_green-600 text-white border-sea_green-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-sea_green-400'
-                }`}
+                className={`px-2.5 py-1 text-sm rounded-md border transition-colors capitalize ${(params.healthStatus || []).includes(status)
+                  ? 'bg-sea_green-600 text-white border-sea_green-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-sea_green-400'
+                  }`}
               >
                 {status}
               </button>
@@ -537,11 +536,10 @@ export default function AnimalHealthCarePage() {
                 key={value}
                 type="button"
                 onClick={() => toggleArrayParam('endangerment', value)}
-                className={`px-2.5 py-1 text-xs rounded-md border transition-colors ${
-                  (params.endangerment || []).includes(value)
-                    ? 'bg-sea_green-600 text-white border-sea_green-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-sea_green-400'
-                }`}
+                className={`px-2.5 py-1 text-xs rounded-md border transition-colors ${(params.endangerment || []).includes(value)
+                  ? 'bg-sea_green-600 text-white border-sea_green-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-sea_green-400'
+                  }`}
               >
                 {label}
               </button>
@@ -713,21 +711,19 @@ export default function AnimalHealthCarePage() {
                 <div className="flex items-center gap-1 border border-gray-300 rounded-md p-1">
                   <button
                     onClick={() => setViewMode('cards')}
-                    className={`px-3 py-1 text-sm rounded transition-colors ${
-                      viewMode === 'cards'
-                        ? 'bg-sea_green-600 text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === 'cards'
+                      ? 'bg-sea_green-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                      }`}
                   >
                     Cards
                   </button>
                   <button
                     onClick={() => setViewMode('table')}
-                    className={`px-3 py-1 text-sm rounded transition-colors ${
-                      viewMode === 'table'
-                        ? 'bg-sea_green-600 text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`px-3 py-1 text-sm rounded transition-colors ${viewMode === 'table'
+                      ? 'bg-sea_green-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                      }`}
                   >
                     Table
                   </button>
@@ -736,41 +732,38 @@ export default function AnimalHealthCarePage() {
 
               {/* View Size Toggle */}
               {viewMode === 'cards' && (
-              <div>
-                <Label className="text-xs text-gray-600 mb-1 block">View Size</Label>
-                <div className="flex items-center gap-1 border border-gray-300 rounded-md p-1">
-                  <button
-                    onClick={() => setViewSize(3)}
-                    className={`px-3 py-1 text-sm rounded transition-colors ${
-                      viewSize === 3
+                <div>
+                  <Label className="text-xs text-gray-600 mb-1 block">View Size</Label>
+                  <div className="flex items-center gap-1 border border-gray-300 rounded-md p-1">
+                    <button
+                      onClick={() => setViewSize(3)}
+                      className={`px-3 py-1 text-sm rounded transition-colors ${viewSize === 3
                         ? 'bg-sea_green-600 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    3
-                  </button>
-                  <button
-                    onClick={() => setViewSize(4)}
-                    className={`px-3 py-1 text-sm rounded transition-colors ${
-                      viewSize === 4
+                        }`}
+                    >
+                      3
+                    </button>
+                    <button
+                      onClick={() => setViewSize(4)}
+                      className={`px-3 py-1 text-sm rounded transition-colors ${viewSize === 4
                         ? 'bg-sea_green-600 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    4
-                  </button>
-                  <button
-                    onClick={() => setViewSize(5)}
-                    className={`px-3 py-1 text-sm rounded transition-colors ${
-                      viewSize === 5
+                        }`}
+                    >
+                      4
+                    </button>
+                    <button
+                      onClick={() => setViewSize(5)}
+                      className={`px-3 py-1 text-sm rounded transition-colors ${viewSize === 5
                         ? 'bg-sea_green-600 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    5
-                  </button>
+                        }`}
+                    >
+                      5
+                    </button>
+                  </div>
                 </div>
-              </div>
               )}
 
               {/* Sort By - only show in table view or when appropriate */}
@@ -831,51 +824,71 @@ export default function AnimalHealthCarePage() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                                          {habitat.animals.length > 0 ? (
-  <div className={`grid grid-cols-1 ${getGridColsClass()} gap-3`}> {/* lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 */} {/* lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 */}{habitat.animals.map((animal) => (
-                          <div
-                            key={animal.animal_id}
-                            className="border rounded-lg p-3 hover:border-sea_green-400 transition-colors bg-white"
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-sm truncate">{animal.animal_name}</h4>
-                                <p className="text-xs text-gray-600 truncate">{animal.species}</p>
-                              </div>
-                              <Badge variant={getHealthBadge(animal.health_status)} className="text-xs ml-2 capitalize">
-                                {animal.health_status}
-                              </Badge>
-                            </div>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Conservation:</span>
-                                <span className="font-medium capitalize">{formatEndangerment(animal.endangerment_status)}</span>
-                              </div>
-                              {animal.keeper_name && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Keeper:</span>
-                                  <span className="font-medium">{animal.keeper_name}</span>
+                    {habitat.animals.length > 0 ? (
+                      <div className={`grid grid-cols-1 ${getGridColsClass()} gap-3`}> {/* lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 */} {/* lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 */}{habitat.animals.map((animal) => (
+                        <div
+                          key={animal.animal_id}
+                          className="border rounded-lg p-3 hover:border-sea_green-400 transition-colors bg-white"
+                        >
+                          <div className="flex gap-3">
+                            {/* Animal Image */}
+                            <div className="flex-shrink-0">
+                              {animal.image_url ? (
+                                <img
+                                  src={animal.image_url}
+                                  alt={animal.animal_name || 'Animal'}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                                  <Leaf className="h-6 w-6 text-gray-400" />
                                 </div>
                               )}
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Weight:</span>
-                                <span className="font-medium">{formatWeight(animal.weight)}</span>
+                            </div>
+                            {/* Card Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-sm truncate">{animal.animal_name}</h4>
+                                  <p className="text-xs text-gray-600 truncate">{animal.species}</p>
+                                </div>
+                                <Badge variant={getHealthBadge(animal.health_status)} className="text-xs ml-2 capitalize">
+                                  {animal.health_status}
+                                </Badge>
                               </div>
-                              <div className="pt-1 border-t">
-                                {(() => {
-                                  if (!animal.last_fed_time) {
-                                    return <Badge variant="danger" className="text-xs justify-center">Never Fed</Badge>;
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Conservation:</span>
+                                  <span className="font-medium capitalize">{formatEndangerment(animal.endangerment_status)}</span>
+                                </div>
+                                {animal.keeper_name && (
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Keeper:</span>
+                                    <span className="font-medium">{animal.keeper_name}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Weight:</span>
+                                  <span className="font-medium">{formatWeight(animal.weight)}</span>
+                                </div>
+                                <div className="pt-1 border-t">
+                                  {(() => {
+                                    if (!animal.last_fed_time) {
+                                      return <Badge variant="danger" className="text-xs justify-center">Never Fed</Badge>;
                                     }
                                     const hoursSinceLastFed = (Date.now() - new Date(animal.last_fed_time).getTime()) / (1000 * 60 * 60);
                                     if (hoursSinceLastFed < 24) {
                                       return <Badge variant="success" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
                                     } else {
                                       return <Badge variant="warning" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
-                                    }                                })()}
+                                    }
+                                  })()}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        ))}
+                        </div>
+                      ))}
                       </div>
                     ) : (
                       <p className="text-gray-500 text-center py-4 text-sm">No animals in this habitat</p>
@@ -990,39 +1003,59 @@ export default function AnimalHealthCarePage() {
                           key={animal.animal_id}
                           className="border rounded-lg p-3 hover:border-sea_green-400 transition-colors bg-white"
                         >
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="flex gap-3">
+                            {/* Animal Image */}
+                            <div className="flex-shrink-0">
+                              {animal.image_url ? (
+                                <img
+                                  src={animal.image_url}
+                                  alt={animal.animal_name || 'Animal'}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                                  <Leaf className="h-6 w-6 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                            {/* Card Content */}
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm truncate">{animal.animal_name}</h4>
-                              <p className="text-xs text-gray-600 truncate">{animal.species}</p>
-                            </div>
-                            <Badge variant={getHealthBadge(animal.health_status)} className="text-xs ml-2 capitalize">
-                              {animal.health_status}
-                            </Badge>
-                          </div>
-                          <div className="space-y-1 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Habitat:</span>
-                              <span className="font-medium truncate ml-2">{animal.habitat_name}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Conservation:</span>
-                              <span className="font-medium capitalize">{formatEndangerment(animal.endangerment_status)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Weight:</span>
-                              <span className="font-medium">{formatWeight(animal.weight)}</span>
-                            </div>
-                            <div className="pt-1 border-t">
-                              {(() => {
-                                if (!animal.last_fed_time) {
-                                  return <Badge variant="danger" className="text-xs justify-center">Never Fed</Badge>;
-                                  }
-                                  const hoursSinceLastFed = (Date.now() - new Date(animal.last_fed_time).getTime()) / (1000 * 60 * 60);
-                                  if (hoursSinceLastFed < 24) {
-                                    return <Badge variant="success" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
-                                  } else {
-                                    return <Badge variant="warning" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
-                                  }                              })()}
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-sm truncate">{animal.animal_name}</h4>
+                                  <p className="text-xs text-gray-600 truncate">{animal.species}</p>
+                                </div>
+                                <Badge variant={getHealthBadge(animal.health_status)} className="text-xs ml-2 capitalize">
+                                  {animal.health_status}
+                                </Badge>
+                              </div>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Habitat:</span>
+                                  <span className="font-medium truncate ml-2">{animal.habitat_name}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Conservation:</span>
+                                  <span className="font-medium capitalize">{formatEndangerment(animal.endangerment_status)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Weight:</span>
+                                  <span className="font-medium">{formatWeight(animal.weight)}</span>
+                                </div>
+                                <div className="pt-1 border-t">
+                                  {(() => {
+                                    if (!animal.last_fed_time) {
+                                      return <Badge variant="danger" className="text-xs justify-center">Never Fed</Badge>;
+                                    }
+                                    const hoursSinceLastFed = (Date.now() - new Date(animal.last_fed_time).getTime()) / (1000 * 60 * 60);
+                                    if (hoursSinceLastFed < 24) {
+                                      return <Badge variant="success" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
+                                    } else {
+                                      return <Badge variant="warning" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
+                                    }
+                                  })()}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1153,13 +1186,14 @@ export default function AnimalHealthCarePage() {
                           {(() => {
                             if (!animal.last_fed_time) {
                               return <Badge variant="danger" className="text-xs justify-center">Never Fed</Badge>;
-                              }
-                              const hoursSinceLastFed = (Date.now() - new Date(animal.last_fed_time).getTime()) / (1000 * 60 * 60);
-                              if (hoursSinceLastFed < 24) {
-                                return <Badge variant="success" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
-                              } else {
-                                return <Badge variant="warning" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
-                              }                          })()}
+                            }
+                            const hoursSinceLastFed = (Date.now() - new Date(animal.last_fed_time).getTime()) / (1000 * 60 * 60);
+                            if (hoursSinceLastFed < 24) {
+                              return <Badge variant="success" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
+                            } else {
+                              return <Badge variant="warning" className="text-xs justify-center">Fed {Math.round(hoursSinceLastFed)}h ago</Badge>;
+                            }
+                          })()}
                         </div>
                       </div>
                     </div>

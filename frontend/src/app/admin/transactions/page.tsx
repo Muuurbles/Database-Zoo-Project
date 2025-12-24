@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { transactionService } from '@/services/transaction.service';
+import { transactionService, PaginatedTransactionResponse } from '@/services/transaction.service';
 import { UnifiedTransaction } from '@/types/transaction.types';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -15,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, DollarSign } from 'lucide-react';
+import { Search, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function TransactionsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -23,20 +24,27 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     if (isAuthenticated) {
       loadTransactions();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, page, limit]);
 
   const loadTransactions = async () => {
     try {
       setLoading(true);
-      const data = await transactionService.getAll();
-      setTransactions(data);
+      const result = await transactionService.getAll(page, limit);
+      setTransactions(result.data);
+      setTotalItems(result.pagination.total);
+      setTotalPages(result.pagination.totalPages);
     } catch (error) {
       console.error('Failed to load transactions:', error);
     } finally {
@@ -50,8 +58,6 @@ export default function TransactionsPage() {
         t.id.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
-
-      // TODO: Add date filtering
 
       return matchesSearch && matchesType;
     })
@@ -67,6 +73,17 @@ export default function TransactionsPage() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString();
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset to first page when changing limit
   };
 
   if (authLoading || loading) {
@@ -120,7 +137,7 @@ export default function TransactionsPage() {
         </div>
 
         <Badge variant="outline" className="text-sm">
-          {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
+          {totalItems} total transaction{totalItems !== 1 ? 's' : ''}
         </Badge>
       </div>
 
@@ -171,6 +188,72 @@ export default function TransactionsPage() {
             })}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between border-t pt-4">
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-600">Items per page:</span>
+          <Select
+            value={limit.toString()}
+            onChange={(e) => handleLimitChange(parseInt(e.target.value))}
+            className="w-20"
+          >
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </Select>
+          <span className="text-sm text-gray-600">
+            Showing {((page - 1) * limit) + 1} - {Math.min(page * limit, totalItems)} of {totalItems}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (page <= 3) {
+                pageNum = i + 1;
+              } else if (page >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = page - 2 + i;
+              }
+              return (
+                <Button
+                  key={pageNum}
+                  variant={page === pageNum ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                  className="min-w-[40px]"
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
