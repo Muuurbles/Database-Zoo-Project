@@ -1,5 +1,6 @@
 import { Employee, EmployeeModel } from '../models/employee.model';
 import { query } from '../config/database';
+import bcrypt from 'bcrypt';
 
 export class EmployeeService {
   static async getAllEmployees(): Promise<Employee[]> {
@@ -31,8 +32,9 @@ export class EmployeeService {
     );
     const accountId = userAccountResult.insertId;
 
-    // Step 3: Save the password (plain text)
-    await query('INSERT INTO passwords (account_id, password_hash) VALUES (?, ?)', [accountId, password]);
+    // Step 3: Save the password (hashed)
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await query('INSERT INTO passwords (account_id, password_hash) VALUES (?, ?)', [accountId, hashedPassword]);
 
     return newEmployee;
   }
@@ -57,9 +59,10 @@ export class EmployeeService {
 
       if (account) {
         // Update the password
+        const hashedPassword = await bcrypt.hash(password, 10);
         await query(
           'UPDATE passwords SET password_hash = ? WHERE account_id = ?',
-          [password, account.account_id]
+          [hashedPassword, account.account_id]
         );
       }
     }
@@ -70,13 +73,13 @@ export class EmployeeService {
   static async deleteEmployee(id: number): Promise<void> {
     // Check if this employee is a zookeeper before deleting
     const employee = await EmployeeModel.findById(id);
-    
+
     // If the employee is a zookeeper, delete all their assignments
     // This makes the animals unassigned instead of keeping assignments to a deleted keeper
     if (employee && employee.job_role === 'keeper') {
       await query('DELETE FROM zookeeper_assignments WHERE keeper_id = ?', [id]);
     }
-    
+
     return await EmployeeModel.remove(id);
   }
 

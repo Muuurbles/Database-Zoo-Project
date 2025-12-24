@@ -41,7 +41,11 @@ class ApiClient {
         }
         if (error.response?.status === 401) {
           // Unauthorized - clear user and redirect to login
-          if (typeof window !== 'undefined') {
+          // Don't redirect if we're already on the login page or if it's a login attempt failure
+          const isLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login';
+          const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+          if (typeof window !== 'undefined' && !isLoginPage && !isLoginRequest) {
             localStorage.removeItem('user');
             localStorage.removeItem('token');
             window.location.href = '/login';

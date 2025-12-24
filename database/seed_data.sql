@@ -100,11 +100,11 @@ INSERT INTO user_accounts (account_id, username, email, role, customer_id) VALUE
 -- PASSWORDS
 -- =======================================
 INSERT INTO passwords (account_id, password_hash) VALUES
-(1, 'password'), (2, 'password'), (3, 'password'), (4, 'password'), 
-(5, 'password'), (6, 'password'), (7, 'password'), (8, 'password'), 
-(9, 'password'), (10, 'password'), (11, 'password'), (12, 'password'), 
-(13, 'password'), (14, 'password'), (15, 'password'), (16, 'password'), 
-(17, 'password'), (18, 'password');
+(1, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (2, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (3, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (4, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), 
+(5, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (6, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (7, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (8, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), 
+(9, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (10, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (11, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (12, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), 
+(13, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (14, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (15, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (16, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), 
+(17, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G'), (18, '$2b$10$ujYJ5/TQ3beH.CUpc.v7y.SJQhT8ursFeMvCxesKPth026cVz0Z.G');
 
 -- =======================================
 -- ATTRACTIONS
