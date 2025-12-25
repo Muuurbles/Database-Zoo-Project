@@ -36,7 +36,7 @@ export default function AssignmentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<ZookeeperAssignmentWithDetails | null>(null);
-  const [viewMode, setViewMode] = useState<'table' | 'map'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'map'>('map');
 
   const isManager = hasRole('manager');
 
@@ -158,7 +158,7 @@ export default function AssignmentsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Error Alert */}
       {error && (
         <Alert
@@ -280,13 +280,15 @@ export default function AssignmentsPage() {
       )}
 
       {viewMode === 'map' && (
-        <AssignmentMapView
-          animals={animals}
-          keepers={keepers}
-          assignments={assignments}
-          onAssignmentCreated={loadAssignments}
-          onAssignmentDeleted={loadAssignments}
-        />
+        <div className="-mt-2">
+          <AssignmentMapView
+            animals={animals}
+            keepers={keepers}
+            assignments={assignments}
+            onAssignmentCreated={loadAssignments}
+            onAssignmentDeleted={loadAssignments}
+          />
+        </div>
       )}
 
       {/* Add Assignment Modal */}
