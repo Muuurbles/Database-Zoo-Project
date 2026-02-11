@@ -22,7 +22,7 @@ import {
 import { Plus, Search, Trash2, UserCog, LayoutGrid, List } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { AssignmentForm } from '@/components/admin/AssignmentForm';
-import { AssignmentMapView } from '@/components/admin/AssignmentMapView';
+import { AssignmentGraphView } from '@/components/admin/AssignmentGraphView';
 
 export default function AssignmentsPage() {
   const { isAuthenticated, hasRole, loading: authLoading } = useAuth();
@@ -281,7 +281,7 @@ export default function AssignmentsPage() {
 
       {viewMode === 'map' && (
         <div className="-mt-2">
-          <AssignmentMapView
+          <AssignmentGraphView
             animals={animals}
             keepers={keepers}
             assignments={assignments}
