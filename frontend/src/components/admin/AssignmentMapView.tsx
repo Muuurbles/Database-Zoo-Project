@@ -499,19 +499,6 @@ export function AssignmentMapView({
 
             await handleCreateAssignment(targetKeeper, draggedAnimalId);
 
-            // Smooth return to original layout position (works for all layouts)
-            const layout = layoutMode === 'grid'
-                ? getGridLayout()
-                : layoutMode === 'cluster'
-                    ? getClusterLayout()
-                    : getRowsLayout();
-            if (layout.animalPos[draggedAnimalId]) {
-                setAnimalPositions(prev => ({
-                    ...prev,
-                    [draggedAnimalId]: layout.animalPos[draggedAnimalId],
-                }));
-            }
-
             // Trigger cascade ripple effect
             triggerRippleEffect(targetKeeper, draggedAnimalId);
 
@@ -523,7 +510,7 @@ export function AssignmentMapView({
         setDropTargetKeeper(null);
         setIsPanning(false);
         setIsDragging(false);
-    }, [draggedItem, dropTargetKeeper, layoutMode, getGridLayout, getClusterLayout, getRowsLayout, triggerRippleEffect]);
+    }, [draggedItem, dropTargetKeeper, triggerRippleEffect]);
 
     const handleCreateAssignment = async (keeperId: number, animalId: number) => {
         const exists = assignments.some(a => a.keeper_id === keeperId && a.animal_id === animalId);

@@ -8,7 +8,7 @@ import { ZookeeperAssignmentWithDetails, assignmentService } from '@/services/as
 import {
   User, Leaf, ZoomIn, ZoomOut, RotateCcw, Maximize2, Minimize2,
   History, X, Undo2, AlertTriangle, Trash2, Plus, Users, PawPrint, Network,
-  Circle, ImageIcon, RectangleHorizontal
+  Circle, ImageIcon, RectangleHorizontal, Pin, PinOff
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import {
@@ -66,6 +66,10 @@ const KEEPER_RADIUS = 28;
 const ANIMAL_RADIUS = 22;
 const KEEPER_RADIUS_LARGE = 36;
 const ANIMAL_RADIUS_LARGE = 32;
+const CARD_DIMENSIONS = {
+  keeper: { width: 170, height: 86 },
+  animal: { width: 162, height: 82 },
+};
 
 const COLORS = {
   bg: '#ffffff',
@@ -203,21 +207,86 @@ function buildGraphData(
   return { nodes, links };
 }
 
+function getCardBounds(node: GraphNode) {
+  const dims = node.type === 'keeper' ? CARD_DIMENSIONS.keeper : CARD_DIMENSIONS.animal;
+  return { width: dims.width, height: dims.height };
+}
+
+function truncate(text: string, maxChars: number) {
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, Math.max(0, maxChars - 1))}...`;
+}
+
 function setupSimulation(
   nodes: GraphNode[],
   links: GraphLink[],
   mode: GroupingMode,
+  nodeStyle: NodeStyle,
   width: number,
   height: number
 ) {
+  // Seed grouped layouts to avoid directional clumping on first settle.
+  if (mode === 'keeper' || mode === 'animal') {
+    const parents = nodes.filter(n => !n.groupParent);
+    const cols = Math.max(1, Math.ceil(Math.sqrt(parents.length)));
+    const spacingX = nodeStyle === 'card' ? 340 : 260;
+    const spacingY = nodeStyle === 'card' ? 220 : 180;
+    const originX = width / 2 - ((cols - 1) * spacingX) / 2;
+    const originY = height / 2 - (Math.ceil(parents.length / cols) * spacingY) / 2;
+
+    parents.forEach((p, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      p.x = originX + col * spacingX;
+      p.y = originY + row * spacingY;
+    });
+
+    const childrenByParent = new Map<string, GraphNode[]>();
+    nodes.forEach(n => {
+      if (!n.groupParent) return;
+      const existing = childrenByParent.get(n.groupParent) || [];
+      existing.push(n);
+      childrenByParent.set(n.groupParent, existing);
+    });
+
+    childrenByParent.forEach((children, parentId) => {
+      const parent = parents.find(p => p.id === parentId);
+      if (!parent) return;
+      children.forEach((child, i) => {
+        const angle = (i / Math.max(1, children.length)) * Math.PI * 2;
+        const ring = Math.floor(i / 10);
+        const radius = (nodeStyle === 'card' ? 180 : 140) + ring * 45;
+        child.x = (parent.x ?? width / 2) + Math.cos(angle) * radius;
+        child.y = (parent.y ?? height / 2) + Math.sin(angle) * radius;
+      });
+    });
+  }
+
+  nodes.forEach((node, i) => {
+    if (node.x != null && node.y != null) return;
+    const angle = (i / Math.max(1, nodes.length)) * Math.PI * 2;
+    const radius = 120 + (i % 5) * 20;
+    node.x = width / 2 + Math.cos(angle) * radius;
+    node.y = height / 2 + Math.sin(angle) * radius;
+  });
+
   const sim = forceSimulation(nodes)
-    .force('charge', forceManyBody().strength(mode === 'cluster' ? -200 : -300))
-    .force('center', forceCenter(width / 2, height / 2).strength(0.05))
-    .force('collision', forceCollide<GraphNode>().radius(d => d.radius + 12).strength(0.8))
+    .force('charge', forceManyBody().strength(mode === 'cluster' ? -90 : -120))
+    .force('center', forceCenter(width / 2, height / 2).strength(0.02))
+    .force('collision', forceCollide<GraphNode>().radius(d => {
+      if (nodeStyle === 'card') {
+        const dims = getCardBounds(d);
+        return Math.sqrt((dims.width / 2) ** 2 + (dims.height / 2) ** 2) + 10;
+      }
+      return d.radius + 12;
+    }).strength(nodeStyle === 'card' ? 1 : 0.8))
     .force('link', forceLink<GraphNode, GraphLink>(links).id(d => d.id)
-      .distance(mode === 'cluster' ? 120 : 80).strength(0.6))
-    .alphaDecay(0.02)
-    .velocityDecay(0.3);
+      .distance(mode === 'cluster'
+        ? (nodeStyle === 'card' ? 210 : 130)
+        : (nodeStyle === 'card' ? 170 : 90))
+      .strength(mode === 'cluster' ? 0.22 : 0.25))
+    .alphaDecay(0.045)
+    .velocityDecay(0.5);
 
   // In grouped modes, pull children toward their parent
   if (mode === 'keeper' || mode === 'animal') {
@@ -230,7 +299,7 @@ function setupSimulation(
         return parent?.x ?? width / 2;
       }
       return width / 2;
-    }).strength(d => d.groupParent ? 0.15 : 0.02));
+    }).strength(d => d.groupParent ? 0.05 : 0.01));
 
     sim.force('groupY', forceY<GraphNode>().y(d => {
       if (d.groupParent) {
@@ -238,7 +307,7 @@ function setupSimulation(
         return parent?.y ?? height / 2;
       }
       return height / 2;
-    }).strength(d => d.groupParent ? 0.15 : 0.02));
+    }).strength(d => d.groupParent ? 0.05 : 0.01));
   }
 
   return sim;
@@ -273,7 +342,8 @@ export function AssignmentGraphView({
   const animFrameRef = useRef<number>(0);
 
   const [grouping, setGrouping] = useState<GroupingMode>('keeper');
-  const [nodeStyle, setNodeStyle] = useState<NodeStyle>('minimal');
+  const [nodeStyle, setNodeStyle] = useState<NodeStyle>('card');
+  const [pinDraggedNodes, setPinDraggedNodes] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -328,7 +398,7 @@ export function AssignmentGraphView({
     // Stop old simulation
     if (simRef.current) simRef.current.stop();
 
-    const sim = setupSimulation(nodes, links, grouping, w, h);
+    const sim = setupSimulation(nodes, links, grouping, nodeStyle, w, h);
     simRef.current = sim;
 
     // Reset transform
@@ -338,7 +408,16 @@ export function AssignmentGraphView({
     sim.on('tick', () => { /* render loop handles drawing */ });
 
     return () => { sim.stop(); };
-  }, [animals, keepers, assignments, grouping]);
+  }, [animals, keepers, assignments, grouping, nodeStyle]);
+
+  useEffect(() => {
+    if (pinDraggedNodes) return;
+    nodesRef.current.forEach(node => {
+      node.fx = null;
+      node.fy = null;
+    });
+    simRef.current?.alpha(0.1).restart();
+  }, [pinDraggedNodes]);
 
   // ─── Canvas rendering loop ────────────────────────────────────────────
   useEffect(() => {
@@ -473,42 +552,59 @@ export function AssignmentGraphView({
         }
 
         if (style === 'card') {
-          // Card style: rounded rect
-          const cardW = r * 3.5;
-          const cardH = r * 2.2;
+          // Card style: image-first cards with compact metadata
+          const { width: cardW, height: cardH } = getCardBounds(node);
+          const imageSize = cardH - 12;
           const cx = node.x - cardW / 2;
           const cy = node.y - cardH / 2;
           ctx.beginPath();
-          ctx.roundRect(cx, cy, cardW, cardH, 8);
+          ctx.roundRect(cx, cy, cardW, cardH, 10);
           ctx.fillStyle = colors.fill;
           ctx.fill();
           ctx.strokeStyle = isDrop ? '#8b5cf6' : isHovered ? COLORS.link.highlight : colors.stroke;
           ctx.lineWidth = isDrop ? 3 : isHovered ? 2.5 : 1.5;
           ctx.stroke();
 
-          // Image thumbnail in card
-          if (style === 'card' && node.imageUrl) {
+          if (node.imageUrl) {
             const img = getImage(node.imageUrl);
             if (img) {
               ctx.save();
               ctx.beginPath();
-              ctx.roundRect(cx + 4, cy + 4, cardH - 8, cardH - 8, 4);
+              ctx.roundRect(cx + 6, cy + 6, imageSize, imageSize, 8);
               ctx.clip();
-              ctx.drawImage(img, cx + 4, cy + 4, cardH - 8, cardH - 8);
+              ctx.drawImage(img, cx + 6, cy + 6, imageSize, imageSize);
               ctx.restore();
             }
+          } else {
+            ctx.beginPath();
+            ctx.roundRect(cx + 6, cy + 6, imageSize, imageSize, 8);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fill();
+            ctx.fillStyle = colors.stroke;
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.type === 'keeper' ? 'K' : 'A', cx + 6 + imageSize / 2, cy + 6 + imageSize / 2);
           }
 
           // Text
           ctx.fillStyle = colors.text;
-          ctx.font = 'bold 11px Inter, system-ui, sans-serif';
+          ctx.font = '600 10px Inter, system-ui, sans-serif';
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
-          const textX = node.imageUrl ? cx + cardH : cx + 8;
-          ctx.fillText(node.label.slice(0, 14), textX, node.y - 5);
-          ctx.font = '10px Inter, system-ui, sans-serif';
+          const textX = cx + imageSize + 14;
+          ctx.fillText(truncate(node.label, 18), textX, node.y - 8);
+          ctx.font = '9px Inter, system-ui, sans-serif';
           ctx.fillStyle = '#64748b';
-          ctx.fillText(node.sublabel.slice(0, 16), textX, node.y + 8);
+          ctx.fillText(truncate(node.sublabel, 24), textX, node.y + 5);
+
+          if (node.healthStatus) {
+            const hc = COLORS.health[node.healthStatus] || COLORS.health.unknown;
+            ctx.beginPath();
+            ctx.arc(cx + cardW - 10, cy + 10, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = hc;
+            ctx.fill();
+          }
         } else if (style === 'image') {
           // Circle with image fill
           ctx.beginPath();
@@ -620,8 +716,17 @@ export function AssignmentGraphView({
     for (let i = nodes.length - 1; i >= 0; i--) {
       const n = nodes[i];
       if (n.x == null || n.y == null) continue;
+      if (nodeStyle === 'card') {
+        const { width, height } = getCardBounds(n);
+        const left = n.x - width / 2;
+        const top = n.y - height / 2;
+        if (wx >= left && wx <= left + width && wy >= top && wy <= top + height) {
+          return n;
+        }
+        continue;
+      }
       const dx = wx - n.x, dy = wy - n.y;
-      const hitR = nodeStyle === 'card' ? Math.max(n.radius * 1.75, n.radius * 1.1) : n.radius + 4;
+      const hitR = n.radius + 4;
       if (dx * dx + dy * dy < hitR * hitR) return n;
     }
     return null;
@@ -659,7 +764,7 @@ export function AssignmentGraphView({
       setDraggedNode(node.id);
       node.fx = node.x;
       node.fy = node.y;
-      simRef.current?.alphaTarget(0.3).restart();
+      simRef.current?.alphaTarget(0.08).restart();
     } else {
       isPanningRef.current = true;
       panStartRef.current = { x: e.clientX - transformRef.current.x, y: e.clientY - transformRef.current.y };
@@ -745,15 +850,30 @@ export function AssignmentGraphView({
         }
       }
 
-      if (node) { node.fx = null; node.fy = null; }
-      simRef.current?.alphaTarget(0);
+      if (node) {
+        if (pinDraggedNodes) {
+          node.fx = node.x ?? null;
+          node.fy = node.y ?? null;
+        } else {
+          const releasedId = node.id;
+          const releaseDelayMs = 1200;
+          window.setTimeout(() => {
+            const releasedNode = nodesRef.current.find(n => n.id === releasedId);
+            if (!releasedNode || draggedNodeRef.current === releasedId) return;
+            releasedNode.fx = null;
+            releasedNode.fy = null;
+            simRef.current?.alpha(0.06).restart();
+          }, releaseDelayMs);
+        }
+      }
+      simRef.current?.alphaTarget(0.01);
       draggedNodeRef.current = null;
       setDraggedNode(null);
       dropTargetRef.current = null;
       setDropTarget(null);
     }
     isPanningRef.current = false;
-  }, [assignments, keepers, animals, onAssignmentCreated]);
+  }, [assignments, keepers, animals, onAssignmentCreated, pinDraggedNodes]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -896,6 +1016,13 @@ export function AssignmentGraphView({
           onClick={() => setNodeStyle('card')} title="Card style" className={`rounded-lg ${nodeStyle === 'card' ? '' : 'hover:bg-slate-100'}`}>
           <RectangleHorizontal className="h-4 w-4" />
         </Button>
+        <div className="w-px bg-slate-200 mx-1" />
+        <Button variant={pinDraggedNodes ? 'default' : 'ghost'} size="sm"
+          onClick={() => setPinDraggedNodes(p => !p)}
+          title={pinDraggedNodes ? 'Pinned after drag' : 'Auto-release after drag'}
+          className={`rounded-lg ${pinDraggedNodes ? '' : 'hover:bg-slate-100'}`}>
+          {pinDraggedNodes ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+        </Button>
       </div>
 
       {/* Top right controls */}
@@ -941,7 +1068,7 @@ export function AssignmentGraphView({
           </div>
         </div>
         <div className="mt-3 pt-3 border-t border-slate-200">
-          <p className="text-xs text-slate-500">Drag nodes • Scroll to zoom • Click link × to delete</p>
+          <p className="text-xs text-slate-500">Drag nodes • Scroll to zoom • Pin toggle controls snap-back • Click link × to delete</p>
         </div>
       </div>
 
