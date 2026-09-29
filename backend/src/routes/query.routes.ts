@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { QueryController } from '../controllers/query.controller';
-import { protect } from '../middleware/auth.middleware';
+import { protect, restrictTo } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -8,8 +8,9 @@ const router = Router();
 router.use(protect);
 
 // New 3-Report System
-router.get('/animal-health-care', QueryController.getAnimalHealthAndCare);
-router.get('/event-performance', QueryController.getEventPerformance);
-router.get('/financial-report', QueryController.getFinancialReport);
+// Roles match the report links in the admin Sidebar
+router.get('/animal-health-care', restrictTo('manager', 'keeper', 'veterinarian'), QueryController.getAnimalHealthAndCare);
+router.get('/event-performance', restrictTo('manager', 'coordinator'), QueryController.getEventPerformance);
+router.get('/financial-report', restrictTo('manager'), QueryController.getFinancialReport);
 
 export default router;

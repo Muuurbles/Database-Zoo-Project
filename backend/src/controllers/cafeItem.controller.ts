@@ -4,7 +4,9 @@ import { CafeItemService } from '../services/cafeItem.service';
 export class CafeItemController {
   static async getAllItems(req: Request, res: Response): Promise<void> {
     try {
-      const includeDeleted = req.query.includeDeleted === 'true';
+      // Only managers may see deleted items (the /public route has no user at all)
+      const isManager = (req as any).user?.job_role === 'manager';
+      const includeDeleted = isManager && req.query.includeDeleted === 'true';
       const items = includeDeleted
         ? await CafeItemService.getAllItemsIncludingDeleted()
         : await CafeItemService.getAllItems();

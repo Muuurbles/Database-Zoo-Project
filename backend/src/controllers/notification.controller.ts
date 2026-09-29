@@ -120,7 +120,7 @@ export class NotificationController {
       try {
         const notificationId = parseInt(req.params.id);
         // Assuming generic service method, or you can branch if service differs
-        await NotificationService.markAsRead(notificationId); 
+        await NotificationService.markAsRead(notificationId, { customerId: req.user?.customer_id, employeeId: req.user?.employee_id });
         res.status(200).json({ message: 'Notification marked as read' });
       } catch (error) {
         res.status(500).json({ message: 'Error marking notification as read', error });
@@ -172,7 +172,7 @@ export class NotificationController {
     if (isCustomer || isEmployee) {
       try {
         const notificationId = parseInt(req.params.id);
-        await NotificationService.deleteNotification(notificationId);
+        await NotificationService.deleteNotification(notificationId, { customerId: req.user?.customer_id, employeeId: req.user?.employee_id });
         res.status(204).send();
       } catch (error) {
         res.status(500).json({ message: 'Error deleting notification', error });

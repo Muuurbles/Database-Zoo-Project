@@ -1,13 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { isMailEnabled, sendMail } from '../services/mailService';
+import { protect, restrictTo } from '../middleware/auth.middleware';
 
 const router = Router();
 
 /**
- * Test email endpoint - sends a test email to verify SMTP configuration
+ * Test email endpoint - sends a test email to the signed-in manager to verify the mail configuration
  * GET /api/test-email
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', protect, restrictTo('manager'), async (req: Request, res: Response) => {
   if (!isMailEnabled()) {
     res.status(503).json({
       success: false,
@@ -28,7 +29,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     const result = await sendMail({
       from: `"Zoo Verse 12 Test" <${process.env.VERIFIED_SENDER_EMAIL}>`,
-      to: 'abdullahshittu.work@gmail.com',
+      to: (req as any).user.email,
       subject: 'Test Email from Zoo Verse 12',
       text: 'This is a test email to verify SMTP configuration is working.',
       html: `
@@ -44,8 +45,7 @@ router.get('/', async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: 'Test email sent successfully',
-      messageId: result?.messageId,
-      response: result?.response,
+      messageId: (result as any)?.messageId,
     });
   } catch (error: any) {
     console.error('[TEST EMAIL] Error sending test email:', error);
@@ -53,7 +53,6 @@ router.get('/', async (req: Request, res: Response) => {
       success: false,
       message: 'Failed to send test email',
       error: error.message,
-      stack: error.stack,
     });
   }
 });

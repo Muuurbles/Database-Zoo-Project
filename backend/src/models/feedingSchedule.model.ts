@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 import { FeedingSchedule, CreateFeedingScheduleInput, UpdateFeedingScheduleInput } from '../types/feedingSchedule.types';
 
 export class FeedingScheduleModel {
@@ -19,6 +19,7 @@ export class FeedingScheduleModel {
   }
 
   static async create(schedule: CreateFeedingScheduleInput): Promise<FeedingSchedule> {
+    schedule = pickColumns('feeding_schedules', schedule) as typeof schedule;
     const columns = Object.keys(schedule).join(', ');
     const placeholders = Object.keys(schedule).map(() => '?').join(', ');
     const values = Object.values(schedule);
@@ -29,6 +30,9 @@ export class FeedingScheduleModel {
   }
 
   static async update(id: number, updates: UpdateFeedingScheduleInput): Promise<FeedingSchedule | null> {
+    updates = pickColumns('feeding_schedules', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     const setClause = Object.keys(updates)
       .map(key => `${key} = ?`)
       .join(', ');

@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 import { Habitat, HabitatWithDetails } from '../types/habitat.types';
 
 export class HabitatModel {
@@ -28,6 +28,7 @@ export class HabitatModel {
   }
 
   static async create(habitat: Omit<Habitat, 'habitat_id'>): Promise<Habitat> {
+    habitat = pickColumns('habitats', habitat) as typeof habitat;
     // Build column names and values dynamically
     const columns = Object.keys(habitat).join(', ');
     const placeholders = Object.keys(habitat).map(() => '?').join(', ');
@@ -39,6 +40,9 @@ export class HabitatModel {
   }
 
   static async update(id: number, updates: Partial<Habitat>): Promise<Habitat | null> {
+    updates = pickColumns('habitats', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     // Remove read-only fields that shouldn't be updated
     const { habitat_id, created_date, ...updateFields } = updates as any;
 

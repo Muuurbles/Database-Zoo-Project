@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 
 export interface Notification {
   notification_id?: number;
@@ -7,6 +7,11 @@ export interface Notification {
   notification_type?: 'info' | 'warning' | 'alert';
   is_read?: boolean;
   created_at?: string;
+}
+
+export interface NotificationOwner {
+  customerId?: number | null;
+  employeeId?: number | null;
 }
 
 export class NotificationModel {
@@ -49,9 +54,10 @@ export class NotificationModel {
     return results;
   }
 
-  static async markAsRead(notificationId: number): Promise<void> {
-    const sql = 'UPDATE notifications SET is_read = TRUE WHERE notification_id = ?';
-    await query(sql, [notificationId]);
+  // Owner-scoped: only touches the notification if it belongs to this customer or employee
+  static async markAsRead(notificationId: number, owner: NotificationOwner): Promise<void> {
+    const sql = 'UPDATE notifications SET is_read = TRUE WHERE notification_id = ? AND (customer_id = ? OR employee_id = ?)';
+    await query(sql, [notificationId, owner.customerId ?? null, owner.employeeId ?? null]);
   }
 
   static async markAllAsReadForCustomer(customerId: number): Promise<void> {
@@ -65,6 +71,7 @@ export class NotificationModel {
   }
 
   static async create(notification: Omit<Notification, 'notification_id' | 'created_at'>): Promise<Notification> {
+    notification = pickColumns('notifications', notification) as typeof notification;
     const columns = Object.keys(notification).join(', ');
     const placeholders = Object.keys(notification).map(() => '?').join(', ');
     const values = Object.values(notification);
@@ -74,9 +81,9 @@ export class NotificationModel {
     return { notification_id: result.insertId, ...notification };
   }
 
-  static async delete(notificationId: number): Promise<void> {
-    const sql = 'DELETE FROM notifications WHERE notification_id = ?';
-    await query(sql, [notificationId]);
+  static async delete(notificationId: number, owner: NotificationOwner): Promise<void> {
+    const sql = 'DELETE FROM notifications WHERE notification_id = ? AND (customer_id = ? OR employee_id = ?)';
+    await query(sql, [notificationId, owner.customerId ?? null, owner.employeeId ?? null]);
   }
 
   static async deleteByCustomerIdAndType(customerId: number, type: string): Promise<void> {

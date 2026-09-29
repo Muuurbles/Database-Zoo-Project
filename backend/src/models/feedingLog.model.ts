@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 import { FeedingLog, FeedingLogWithKeeper, CreateFeedingLogInput, UpdateFeedingLogInput, FeedingLogFilters } from '../types/feedingLog.types';
 
 export class FeedingLogModel {
@@ -31,7 +31,10 @@ export class FeedingLogModel {
     }
 
     if (filters?.endDate) {
-      sql += ' AND fl.feeding_time <= ?';
+      // A bare 'YYYY-MM-DD' end date includes that whole day
+      sql += /^\d{4}-\d{2}-\d{2}$/.test(filters.endDate)
+        ? " AND fl.feeding_time < date(?, '+1 day')"
+        : ' AND fl.feeding_time <= ?';
       params.push(filters.endDate);
     }
 
@@ -53,11 +56,13 @@ export class FeedingLogModel {
       ORDER BY fl.feeding_time DESC
     `;
 
-    if (limit) {
-      sql += ` LIMIT ${limit}`;
+    const params: any[] = [animalId];
+    if (limit && Number.isInteger(limit) && limit > 0) {
+      sql += ' LIMIT ?';
+      params.push(limit);
     }
 
-    return await query<FeedingLogWithKeeper[]>(sql, [animalId]);
+    return await query<FeedingLogWithKeeper[]>(sql, params);
   }
 
   static async findById(id: number): Promise<FeedingLogWithKeeper | null> {
@@ -76,6 +81,7 @@ export class FeedingLogModel {
   }
 
   static async create(log: CreateFeedingLogInput): Promise<FeedingLog> {
+    log = pickColumns('feeding_logs', log) as typeof log;
     // If feeding_time is not provided, it will use CURRENT_TIMESTAMP as default
     const columns = Object.keys(log).join(', ');
     const placeholders = Object.keys(log).map(() => '?').join(', ');
@@ -90,6 +96,9 @@ export class FeedingLogModel {
   }
 
   static async update(id: number, updates: UpdateFeedingLogInput): Promise<FeedingLogWithKeeper | null> {
+    updates = pickColumns('feeding_logs', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     const setClause = Object.keys(updates)
       .map(key => `${key} = ?`)
       .join(', ');

@@ -6,7 +6,11 @@ export class GiftShopSaleController {
     try {
       const newSale = await GiftShopSaleService.createSale(req.body);
       res.status(201).json(newSale);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.statusCode) {
+        res.status(error.statusCode).json({ message: error.message });
+        return;
+      }
       res.status(500).json({ message: 'Error creating sale', error });
     }
   }

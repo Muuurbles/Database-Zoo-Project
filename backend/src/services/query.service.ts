@@ -440,6 +440,7 @@ export class QueryService {
         gs.location,
         COUNT(*) as transactions,
         SUM(gst.total_amount) as revenue,
+        AVG(gst.total_amount) as avg_transaction,
         SUM(CASE WHEN gst.status = 'returned' THEN 1 ELSE 0 END) as returns
       FROM gift_shop_sales_transactions gst
       JOIN gift_shops gs ON gst.gift_shop_id = gs.gift_shop_id

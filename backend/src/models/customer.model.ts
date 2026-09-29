@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 
 export interface Customer {
   customer_id?: number;
@@ -29,6 +29,7 @@ export class CustomerModel {
   }
 
   static async create(customer: Omit<Customer, 'customer_id'>): Promise<Customer> {
+    customer = pickColumns('customers', customer) as typeof customer;
     const columns = Object.keys(customer).join(', ');
     const placeholders = Object.keys(customer).map(() => '?').join(', ');
     const values = Object.values(customer);
@@ -45,6 +46,9 @@ export class CustomerModel {
   }
 
   static async update(id: number, updates: Partial<Customer>): Promise<Customer | null> {
+    updates = pickColumns('customers', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = [...Object.values(updates), id];
 

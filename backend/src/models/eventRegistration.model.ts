@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 import { EventRegistration } from '../types/eventRegistration.types';
 
 export class EventRegistrationModel {
@@ -14,6 +14,7 @@ export class EventRegistrationModel {
   }
 
   static async create(registration: Omit<EventRegistration, 'registration_id'>): Promise<EventRegistration> {
+    registration = pickColumns('event_registrations', registration) as typeof registration;
     const fields = Object.entries(registration).filter(([, value]) => value !== undefined);
     const columns = fields.map(([key]) => key).join(', ');
     const placeholders = fields.map(() => '?').join(', ');
@@ -24,6 +25,9 @@ export class EventRegistrationModel {
   }
 
   static async update(id: number, updates: Partial<EventRegistration>): Promise<EventRegistration | null> {
+    updates = pickColumns('event_registrations', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     const fields = Object.entries(updates).filter(([, value]) => value !== undefined);
     if (fields.length === 0) {
       return await this.findById(id);

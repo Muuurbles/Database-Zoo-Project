@@ -47,6 +47,7 @@ export class NotificationEmailService {
         `SELECT notification_id, customer_id, message, notification_type, created_at
          FROM notifications
          WHERE notification_type = 'alert'
+           AND customer_id IS NOT NULL
            AND is_read = FALSE
          ORDER BY created_at ASC
          LIMIT 50`  // Process in batches of 50
@@ -122,7 +123,7 @@ export class NotificationEmailService {
       });
 
       // Mark notification as read so it's not sent again
-      await NotificationModel.markAsRead(notification.notification_id);
+      await NotificationModel.markAsRead(notification.notification_id, { customerId: notification.customer_id });
 
       if (ENABLE_EMAIL_LOGGING) {
         console.log(`[Email Service] ✅ Email sent to ${customer.email} for notification #${notification.notification_id}`);
@@ -232,6 +233,7 @@ export class NotificationEmailService {
          JOIN event_registrations er ON er.customer_id = n.customer_id
          WHERE er.event_id = ?
            AND n.notification_type = 'alert'
+           AND n.customer_id IS NOT NULL
            AND n.message LIKE 'CANCELLATION:%'
          ORDER BY n.created_at DESC`,
         [eventId]

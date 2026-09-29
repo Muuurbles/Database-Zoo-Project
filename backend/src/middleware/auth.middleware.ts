@@ -22,7 +22,9 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
        FROM user_accounts u
        LEFT JOIN employees e ON u.employee_id = e.employee_id
        LEFT JOIN customers c ON u.customer_id = c.customer_id
-       WHERE u.account_id = ?`,
+       WHERE u.account_id = ?
+         AND (u.employee_id IS NULL OR e.deleted_at IS NULL)
+         AND (u.customer_id IS NULL OR c.deleted_at IS NULL)`,
       [decoded.id]
     );
 
@@ -30,13 +32,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       return res.status(401).json({ success: false, message: 'User not found' });
     }
 
-    console.log('[AUTH MIDDLEWARE] Authenticated user:', {
-      account_id: user.account_id,
-      username: user.username,
-      role: user.role,
-      customer_id: user.customer_id,
-      employee_id: user.employee_id
-    });
 
     (req as any).user = user;
     next();
@@ -66,7 +61,9 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
        FROM user_accounts u
        LEFT JOIN employees e ON u.employee_id = e.employee_id
        LEFT JOIN customers c ON u.customer_id = c.customer_id
-       WHERE u.account_id = ?`,
+       WHERE u.account_id = ?
+         AND (u.employee_id IS NULL OR e.deleted_at IS NULL)
+         AND (u.customer_id IS NULL OR c.deleted_at IS NULL)`,
       [decoded.id]
     );
 
@@ -85,11 +82,6 @@ export const restrictTo = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const userRole = (req as any).user?.job_role;
 
-    console.log('🔒 Role Check:', {
-      allowedRoles: roles,
-      userRole: userRole,
-      hasAccess: roles.includes(userRole)
-    });
 
     if (!userRole || !roles.includes(userRole)) {
       return res.status(403).json({ success: false, message: 'You do not have permission to perform this action' });

@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 import { Attraction } from '../types/attraction.types';
 
 export class AttractionModel {
@@ -14,6 +14,7 @@ export class AttractionModel {
   }
 
   static async create(attraction: Omit<Attraction, 'attraction_id'>): Promise<Attraction> {
+    attraction = pickColumns('attractions', attraction) as typeof attraction;
     const fields = Object.entries(attraction).filter(([, value]) => value !== undefined);
     const columns = fields.map(([key]) => key).join(', ');
     const placeholders = fields.map(() => '?').join(', ');
@@ -24,6 +25,9 @@ export class AttractionModel {
   }
 
   static async update(id: number, updates: Partial<Attraction>): Promise<Attraction | null> {
+    updates = pickColumns('attractions', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     const fields = Object.entries(updates).filter(([, value]) => value !== undefined);
     if (fields.length === 0) {
       return await this.findById(id);

@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 
 export interface GiftShop {
   gift_shop_id?: number;
@@ -22,6 +22,7 @@ export class GiftShopModel {
   }
 
   static async create(shop: Omit<GiftShop, 'gift_shop_id'>): Promise<GiftShop> {
+    shop = pickColumns('gift_shops', shop) as typeof shop;
     const columns = Object.keys(shop).join(', ');
     const placeholders = Object.keys(shop).map(() => '?').join(', ');
     const values = Object.values(shop);
@@ -38,6 +39,9 @@ export class GiftShopModel {
   }
 
   static async update(id: number, updates: Partial<GiftShop>): Promise<GiftShop | null> {
+    updates = pickColumns('gift_shops', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = [...Object.values(updates), id];
 

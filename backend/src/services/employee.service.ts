@@ -1,5 +1,5 @@
 import { Employee, EmployeeModel } from '../models/employee.model';
-import { query } from '../config/database';
+import { query, withTransaction, syncAccountEmail } from '../config/database';
 import bcrypt from 'bcrypt';
 
 export class EmployeeService {
@@ -22,21 +22,24 @@ export class EmployeeService {
       throw new Error('Password is required for creating an employee');
     }
 
-    // Step 1: Create the employee
-    const newEmployee = await EmployeeModel.create(employee);
-
-    // Step 2: Create user account (use email as username)
-    const userAccountResult = await query<any>(
-      'INSERT INTO user_accounts (username, email, role, employee_id) VALUES (?, ?, ?, ?)',
-      [employee.email, employee.email, 'employee', newEmployee.employee_id]
-    );
-    const accountId = userAccountResult.insertId;
-
-    // Step 3: Save the password (hashed)
     const hashedPassword = await bcrypt.hash(password, 10);
-    await query('INSERT INTO passwords (account_id, password_hash) VALUES (?, ?)', [accountId, hashedPassword]);
 
-    return newEmployee;
+    return withTransaction(async () => {
+      // Step 1: Create the employee
+      const newEmployee = await EmployeeModel.create(employee);
+
+      // Step 2: Create user account (use email as username)
+      const userAccountResult = await query<any>(
+        'INSERT INTO user_accounts (username, email, role, employee_id) VALUES (?, ?, ?, ?)',
+        [employee.email, employee.email, 'employee', newEmployee.employee_id]
+      );
+      const accountId = userAccountResult.insertId;
+
+      // Step 3: Save the password (hashed)
+      await query('INSERT INTO passwords (account_id, password_hash) VALUES (?, ?)', [accountId, hashedPassword]);
+
+      return newEmployee;
+    });
   }
 
   static async getEmployeeById(id: number): Promise<Employee | null> {
@@ -45,29 +48,39 @@ export class EmployeeService {
 
   static async updateEmployee(id: number, updates: Partial<Employee> & { password?: string }): Promise<Employee | null> {
     const { password, ...employeeUpdates } = updates;
+    const hashedPassword = password && password.trim() !== '' ? await bcrypt.hash(password, 10) : null;
 
-    // Update the employee record (without password)
-    const updatedEmployee = await EmployeeModel.update(id, employeeUpdates);
-
-    // If password is provided and not empty, update it in the passwords table
-    if (password && password.trim() !== '' && updatedEmployee) {
-      // Get the account_id for this employee
-      const [account] = await query<any[]>(
-        'SELECT account_id FROM user_accounts WHERE employee_id = ?',
-        [id]
-      );
-
-      if (account) {
-        // Update the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await query(
-          'UPDATE passwords SET password_hash = ? WHERE account_id = ?',
-          [hashedPassword, account.account_id]
-        );
-      }
+    // Part-time employees have no salary (chk_salary); don't keep the old one when switching over
+    if (employeeUpdates.employment_type === 'part_time') {
+      (employeeUpdates as any).salary = null;
     }
 
-    return updatedEmployee;
+    return withTransaction(async () => {
+      // Update the employee record (without password)
+      const updatedEmployee = await EmployeeModel.update(id, employeeUpdates);
+      if (!updatedEmployee) return null;
+
+      if (employeeUpdates.email) {
+        await syncAccountEmail('employee_id', id, employeeUpdates.email);
+      }
+
+      // If a new password was provided, update it in the passwords table
+      if (hashedPassword) {
+        const [account] = await query<any[]>(
+          'SELECT account_id FROM user_accounts WHERE employee_id = ?',
+          [id]
+        );
+
+        if (account) {
+          await query(
+            'UPDATE passwords SET password_hash = ? WHERE account_id = ?',
+            [hashedPassword, account.account_id]
+          );
+        }
+      }
+
+      return updatedEmployee;
+    });
   }
 
   static async deleteEmployee(id: number): Promise<void> {

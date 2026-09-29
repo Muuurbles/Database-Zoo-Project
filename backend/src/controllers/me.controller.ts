@@ -44,7 +44,7 @@ export class MeController {
       const ticketsUpcoming = await query<any[]>(
         `SELECT ticket_id, ticket_type, price, visit_date, purchase_date
          FROM tickets
-         WHERE customer_id = ? AND (visit_date IS NULL OR visit_date >= CURDATE())
+         WHERE customer_id = ? AND deleted_at IS NULL AND (visit_date IS NULL OR visit_date >= CURDATE())
          ORDER BY visit_date ASC, purchase_date DESC
          LIMIT 10`,
         [customerId]
@@ -55,7 +55,8 @@ export class MeController {
                 e.event_id, e.name as event_name, e.event_date, e.start_time, e.end_time, e.location
          FROM event_registrations er
          JOIN events e ON e.event_id = er.event_id
-         WHERE er.customer_id = ? AND (e.event_date IS NULL OR e.event_date >= CURDATE())
+         WHERE er.customer_id = ? AND er.deleted_at IS NULL AND e.deleted_at IS NULL
+           AND (e.event_date IS NULL OR e.event_date >= CURDATE())
          ORDER BY e.event_date ASC, er.registration_date DESC
          LIMIT 10`,
         [customerId]
@@ -64,7 +65,7 @@ export class MeController {
       const visitsRecent = await query<any[]>(
         `SELECT visit_date, COUNT(*) as tickets_count, COALESCE(SUM(price),0) as total_spent
          FROM tickets
-         WHERE customer_id = ? AND visit_date IS NOT NULL AND visit_date < CURDATE()
+         WHERE customer_id = ? AND deleted_at IS NULL AND visit_date IS NOT NULL AND visit_date < CURDATE()
          GROUP BY visit_date
          ORDER BY visit_date DESC
          LIMIT 10`,
@@ -96,7 +97,7 @@ export class MeController {
       if (!customerId) return res.status(400).json({ success: false, message: 'Customer not found' });
       const rows = await query<any[]>(
         `SELECT ticket_id, ticket_type, price, visit_date, purchase_date
-         FROM tickets WHERE customer_id = ? ORDER BY visit_date DESC, purchase_date DESC`,
+         FROM tickets WHERE customer_id = ? AND deleted_at IS NULL ORDER BY visit_date DESC, purchase_date DESC`,
         [customerId]
       );
       res.json({ success: true, data: rows });
@@ -201,7 +202,7 @@ export class MeController {
       if (!customerId) return res.status(400).json({ success: false, message: 'Customer not found' });
       const rows = await query<any[]>(
         `SELECT visit_date, COUNT(*) as tickets_count, COALESCE(SUM(price),0) as total_spent
-         FROM tickets WHERE customer_id = ? AND visit_date IS NOT NULL
+         FROM tickets WHERE customer_id = ? AND deleted_at IS NULL AND visit_date IS NOT NULL
          GROUP BY visit_date
          ORDER BY visit_date DESC`,
         [customerId]

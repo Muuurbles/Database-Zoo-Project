@@ -1,5 +1,4 @@
-import e from 'express';
-import { Notification, NotificationModel } from '../models/notification.model';
+import { Notification, NotificationModel, NotificationOwner } from '../models/notification.model';
 
 export class NotificationService {
   static async getNotifications(customerId: number, unreadOnly: boolean = false): Promise<Notification[]> {
@@ -11,8 +10,8 @@ export class NotificationService {
     return await NotificationModel.findByEmployeeId(employeeId, unreadOnly);
   }
 
-  static async markAsRead(notificationId: number): Promise<void> {
-    return await NotificationModel.markAsRead(notificationId);
+  static async markAsRead(notificationId: number, owner: NotificationOwner): Promise<void> {
+    return await NotificationModel.markAsRead(notificationId, owner);
   }
 
   static async markAllAsRead(customerId: number): Promise<void> {
@@ -28,8 +27,8 @@ export class NotificationService {
     return await NotificationModel.create(notification);
   }
 
-  static async deleteNotification(notificationId: number): Promise<void> {
-    return await NotificationModel.delete(notificationId);
+  static async deleteNotification(notificationId: number, owner: NotificationOwner): Promise<void> {
+    return await NotificationModel.delete(notificationId, owner);
   }
 
   static async deleteByCustomerIdAndType(customerId: number, type: string): Promise<void> {

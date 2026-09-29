@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 import { GiftShopItem } from '../types/giftShopItem.types';
 
 export class GiftShopItemModel {
@@ -38,6 +38,7 @@ export class GiftShopItemModel {
   }
 
   static async create(item: Omit<GiftShopItem, 'item_id'>): Promise<GiftShopItem> {
+    item = pickColumns('gift_shop_items', item) as typeof item;
     const columns = Object.keys(item).join(', ');
     const placeholders = Object.keys(item).map(() => '?').join(', ');
     const values = Object.values(item);
@@ -48,6 +49,9 @@ export class GiftShopItemModel {
   }
 
   static async update(id: number, updates: Partial<GiftShopItem>): Promise<GiftShopItem | null> {
+    updates = pickColumns('gift_shop_items', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = [...Object.values(updates), id];
 

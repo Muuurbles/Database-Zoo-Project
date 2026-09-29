@@ -17,7 +17,7 @@ export class TicketController {
   static async createTicket(req: Request, res: Response): Promise<void> {
     try {
       console.log('Creating ticket with data:', req.body);
-      const newTicket = await TicketService.createTicket(req.body);
+      const newTicket = await TicketService.createTicket({ ...req.body, sold_by: (req as any).user?.employee_id });
       res.status(201).json(newTicket);
     } catch (error: any) {
       console.error('Error creating ticket:', error);

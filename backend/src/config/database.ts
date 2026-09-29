@@ -62,6 +62,9 @@ const formatDbDateTime = (date: Date): string => {
  */
 export const getCurrentDateTime = (): string => formatDbDateTime(new Date());
 
+/** A Date's calendar day ('YYYY-MM-DD') on the app's UTC-6 clock. */
+export const formatDbDate = (date: Date): string => formatDbDateTime(date).slice(0, 10);
+
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?$/;
 
@@ -73,6 +76,8 @@ const parseDbDate = (value: string): Date | string => {
   return new Date(Date.UTC(y, mo - 1, d, h, mi, s) - DB_UTC_OFFSET_MS);
 };
 
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/;
+
 /** Convert JS values that SQLite can't bind directly. */
 const toBindable = (value: unknown): unknown => {
   if (value instanceof Date) {
@@ -80,6 +85,12 @@ const toBindable = (value: unknown): unknown => {
     const formatted = formatDbDateTime(value);
     // A Date at exactly midnight is what a DATE column reads back as; keep it comparable to 'YYYY-MM-DD' text.
     return formatted.endsWith(' 00:00:00') ? formatted.slice(0, 10) : formatted;
+  }
+  // ISO instants (what the API itself sends for dates, e.g. '2026-09-29T06:00:00.000Z') are stored on
+  // the app clock like a Date would be, so they compare and read back like every other date value.
+  if (typeof value === 'string' && ISO_INSTANT.test(value)) {
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) return toBindable(date);
   }
   if (typeof value === 'boolean') return value ? 1 : 0;
   // better-sqlite3 binds every JS number as a double, which a text column would store as '62701.0'.
@@ -318,6 +329,88 @@ export const pool = {
     await turn;
     return new PoolConnection(unlock);
   },
+};
+
+// ---------------------------------------------------------------------------
+// Column whitelisting for models that build INSERT / UPDATE statements from request bodies
+// ---------------------------------------------------------------------------
+
+const tableColumnsCache = new Map<string, { columns: Set<string>; primaryKeys: Set<string>; notNull: Set<string> }>();
+
+const tableColumns = (table: string) => {
+  let info = tableColumnsCache.get(table);
+  if (!info) {
+    const rows = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string; pk: number; notnull: number }[];
+    if (rows.length === 0) throw new Error(`Unknown table: ${table}`);
+    info = {
+      columns: new Set(rows.map((r) => r.name)),
+      primaryKeys: new Set(rows.filter((r) => r.pk > 0).map((r) => r.name)),
+      notNull: new Set(rows.filter((r) => r.notnull).map((r) => r.name)),
+    };
+    tableColumnsCache.set(table, info);
+  }
+  return info;
+};
+
+/**
+ * Keep only the keys of `data` that are writable columns of `table`, so a request body can be
+ * turned into `INSERT INTO t (keys...)` / `UPDATE t SET key = ?` without letting arbitrary text
+ * into the SQL. Drops undefined values, the primary key, and `deleted_at` (soft deletes go
+ * through the dedicated remove/restore methods).
+ *
+ * With `emptyToNull`, an empty string (a cleared form field) becomes NULL for nullable columns and
+ * is dropped for NOT NULL ones.
+ */
+export const pickColumns = <T extends Record<string, any>>(
+  table: string,
+  data: T,
+  { emptyToNull = false } = {}
+): Partial<T> => {
+  const { columns, primaryKeys, notNull } = tableColumns(table);
+  const picked: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data ?? {})) {
+    if (value === undefined || !columns.has(key) || primaryKeys.has(key) || key === 'deleted_at') continue;
+    if (emptyToNull && value === '') {
+      if (!notNull.has(key)) picked[key] = null;
+      continue;
+    }
+    picked[key] = value;
+  }
+  return picked as Partial<T>;
+};
+
+/**
+ * Run `fn` inside a transaction on the shared connection: commit if it resolves, roll back if it
+ * throws. Plain `query()` calls made by `fn` are part of the transaction. `fn` must not await real
+ * I/O (bcrypt, network...) - do that before calling - or other requests' queries would run inside it.
+ */
+export const withTransaction = async <T>(fn: () => Promise<T>): Promise<T> => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const result = await fn();
+    await connection.commit();
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
+/**
+ * Keep a login in step with an employee/customer email change. Usernames that were the old
+ * email (every account created through the app) follow the new email too.
+ */
+export const syncAccountEmail = async (owner: 'employee_id' | 'customer_id', id: number, email: string): Promise<void> => {
+  await query(
+    `UPDATE user_accounts
+     SET username = CASE WHEN username = email THEN ? ELSE username END,
+         email = ?
+     WHERE ${owner} = ?`,
+    [email, email, id]
+  );
 };
 
 export const testConnection = async (): Promise<boolean> => {

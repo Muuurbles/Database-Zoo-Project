@@ -1,5 +1,6 @@
 import { EventModel } from '../models/event.model';
 import { Event } from '../types/event.types';
+import { formatDbDate, getCurrentDateTime } from '../config/database';
 
 // Transform database event to frontend format
 const transformEvent = (dbEvent: any): any => {
@@ -10,18 +11,12 @@ const transformEvent = (dbEvent: any): any => {
     // If event is soft-deleted (cancelled), status is cancelled
     status = 'cancelled';
   } else if (dbEvent.event_date) {
-    // Check if event date has passed
-    const eventDate = new Date(dbEvent.event_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to compare dates only
-    
-    if (eventDate < today) {
-      status = 'completed';
-    } else {
-      status = 'scheduled';
-    }
+    // Compare calendar days on the app's UTC-6 clock, not the host's timezone
+    const eventDay = dbEvent.event_date instanceof Date ? formatDbDate(dbEvent.event_date) : String(dbEvent.event_date).slice(0, 10);
+    const today = getCurrentDateTime().slice(0, 10);
+    status = eventDay < today ? 'completed' : 'scheduled';
   }
-  
+
   return {
     event_id: dbEvent.event_id,
     event_name: dbEvent.name,
@@ -31,11 +26,13 @@ const transformEvent = (dbEvent: any): any => {
     end_time: dbEvent.end_time,
     location: dbEvent.location,
     max_capacity: dbEvent.max_participants,
-    ticket_price: dbEvent.ticket_price ? parseFloat(dbEvent.ticket_price) : null,
+    ticket_price: dbEvent.ticket_price != null ? Number(dbEvent.ticket_price) : null,
     image_url: dbEvent.image_url || null,
     status: status,
     created_by: dbEvent.coordinator_id,
+    coordinator_id: dbEvent.coordinator_id,
     coordinator_name: dbEvent.coordinator_name,
+    current_registrations: Number(dbEvent.current_registrations ?? 0),
     deleted_at: dbEvent.deleted_at || null,  // Include deleted_at for soft delete detection
   };
 };
@@ -52,7 +49,8 @@ const transformToDb = (frontendEvent: any): any => {
     image_url: frontendEvent.image_url || null,
     max_participants: frontendEvent.max_capacity || frontendEvent.max_participants,
     ticket_price: frontendEvent.ticket_price !== undefined ? frontendEvent.ticket_price : null,
-    coordinator_id: frontendEvent.created_by || frontendEvent.coordinator_id,
+    // coordinator_id is what the form edits; created_by is the older name for the same column
+    coordinator_id: frontendEvent.coordinator_id ?? frontendEvent.created_by,
   };
 
   // Remove undefined fields

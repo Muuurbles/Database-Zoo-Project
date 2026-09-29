@@ -4,8 +4,8 @@ import { protect, restrictTo } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Customer routes - require authentication for ticket purchases
-router.post('/', protect, TicketController.createTicket);
+// Staff point-of-sale ticket sales (customers buy tickets through /api/checkout)
+router.post('/', protect, restrictTo('manager', 'cashier'), TicketController.createTicket);
 
 // Protected routes - require authentication
 router.get('/', protect, restrictTo('manager'), TicketController.getAllTickets);

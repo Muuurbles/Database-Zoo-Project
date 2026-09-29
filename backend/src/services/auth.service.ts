@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pool } from '../config/database';
 import { signToken } from '../utils/jwt.util';
 import bcrypt from 'bcrypt';
 
@@ -27,7 +27,9 @@ class AuthService {
        FROM user_accounts u
        LEFT JOIN employees e ON u.employee_id = e.employee_id
        LEFT JOIN customers c ON u.customer_id = c.customer_id
-       WHERE u.email = ?`,
+       WHERE u.email = ?
+         AND (u.employee_id IS NULL OR e.deleted_at IS NULL)
+         AND (u.customer_id IS NULL OR c.deleted_at IS NULL)`,
       [email]
     );
 
@@ -76,6 +78,7 @@ class AuthService {
               e.email as employee_email, e.phone as employee_phone, e.job_role,
               c.first_name as customer_first_name, c.last_name as customer_last_name,
               c.email as customer_email, c.phone as customer_phone, c.annual_pass,
+              c.address, c.city, c.state, c.zip_code,
               c.registration_date as registration_date,
               c.membership_start_date, c.membership_end_date, c.membership_auto_renew
        FROM user_accounts u
@@ -95,24 +98,31 @@ class AuthService {
   async register(userData: any) {
     const { first_name, last_name, email, phone, address, city, state, zip_code, password } = userData;
 
+    // Hash before taking the transaction: nothing else should be awaited while it is open
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const connection = await pool.getConnection();
     try {
+      await connection.beginTransaction();
+
       // Step 1: Create a new customer
-      const customerResult = await query<any>(
+      const [customerResult] = await connection.execute(
         'INSERT INTO customers (first_name, last_name, email, phone, address, city, state, zip_code, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURDATE())',
         [first_name, last_name, email, phone, address, city, state, zip_code]
       );
       const customerId = customerResult.insertId;
 
       // Step 2: Create a user account (use email as username)
-      const userAccountResult = await query<any>(
+      const [userAccountResult] = await connection.execute(
         'INSERT INTO user_accounts (username, email, role, customer_id) VALUES (?, ?, ?, ?)',
         [email, email, 'customer', customerId]
       );
       const accountId = userAccountResult.insertId;
 
-      // Step 3: Hash the password with bcrypt (10 rounds) and save
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await query('INSERT INTO passwords (account_id, password_hash) VALUES (?, ?)', [accountId, hashedPassword]);
+      // Step 3: Save the bcrypt hash (10 rounds)
+      await connection.execute('INSERT INTO passwords (account_id, password_hash) VALUES (?, ?)', [accountId, hashedPassword]);
+
+      await connection.commit();
 
       // Step 4: Generate JWT
       const token = signToken({ id: accountId, role: 'customer' });
@@ -130,6 +140,7 @@ class AuthService {
         }
       };
     } catch (error: any) {
+      await connection.rollback();
       // Handle duplicate entry errors
       if (error.code === 'ER_DUP_ENTRY') {
         let field = 'email'; // default
@@ -147,10 +158,14 @@ class AuthService {
           fieldName = 'phone number';
         }
         
-        throw new Error(`There is already an account with this ${fieldName}`);
+        const dupError: any = new Error(`There is already an account with this ${fieldName}`);
+        dupError.statusCode = 409;
+        throw dupError;
       }
       // Re-throw other errors
       throw error;
+    } finally {
+      connection.release();
     }
   }
 
@@ -185,18 +200,36 @@ class AuthService {
       }
     }
 
-    if (customerUpdates.length > 0) {
-      await query(
-        `UPDATE customers SET ${customerUpdates.join(', ')} WHERE customer_id = ?`,
-        [...customerValues, customerId]
-      );
-    }
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
 
-    if (data.email !== undefined) {
-      await query(
-        'UPDATE user_accounts SET email = ? WHERE account_id = ?',
-        [data.email, userId]
-      );
+      if (customerUpdates.length > 0) {
+        await connection.execute(
+          `UPDATE customers SET ${customerUpdates.join(', ')} WHERE customer_id = ?`,
+          [...customerValues, customerId]
+        );
+      }
+
+      if (data.email !== undefined) {
+        // Customer usernames are their email (see register), so keep them in step
+        await connection.execute(
+          'UPDATE user_accounts SET email = ?, username = ? WHERE account_id = ?',
+          [data.email, data.email, userId]
+        );
+      }
+
+      await connection.commit();
+    } catch (error: any) {
+      await connection.rollback();
+      if (error.code === 'ER_DUP_ENTRY') {
+        const dupError: any = new Error('There is already an account with this email');
+        dupError.statusCode = 409;
+        throw dupError;
+      }
+      throw error;
+    } finally {
+      connection.release();
     }
 
     return true;

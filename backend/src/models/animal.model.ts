@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 
 export interface Animal {
   animal_id?: number;
@@ -47,6 +47,7 @@ export class AnimalModel {
   }
 
   static async create(animal: Omit<Animal, 'animal_id'>): Promise<Animal> {
+    animal = pickColumns('animals', animal) as typeof animal;
     const columns = Object.keys(animal).join(', ');
     const placeholders = Object.keys(animal).map(() => '?').join(', ');
     const values = Object.values(animal);
@@ -63,16 +64,8 @@ export class AnimalModel {
   }
 
   static async update(id: number, updates: Partial<Animal>): Promise<Animal | null> {
-    // Filter out undefined values and empty strings for optional fields (except image_url which can be empty to clear)
-    const filteredUpdates = Object.entries(updates).reduce((acc, [key, value]) => {
-      if (value !== undefined) {
-        // Allow empty string for image_url to clear the image
-        if (key === 'image_url' || value !== '') {
-          acc[key] = value;
-        }
-      }
-      return acc;
-    }, {} as Record<string, any>);
+    // Cleared optional fields ('' from the form) become NULL; required fields can't be blanked
+    const filteredUpdates = pickColumns('animals', updates, { emptyToNull: true });
 
     if (Object.keys(filteredUpdates).length === 0) {
       return await this.findById(id);

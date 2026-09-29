@@ -8,7 +8,7 @@ export interface CheckoutCartItem {
   unit_price: number;
   metadata?: {
     visit_date?: string;
-    ticket_type?: 'adult' | 'child' | 'senior';
+    ticket_type?: 'adult' | 'child' | 'senior' | 'student';
     event_id?: number;
     participants?: number;
     cafe_id?: number;

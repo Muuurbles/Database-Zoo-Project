@@ -1,14 +1,18 @@
 import { pool } from '../config/database';
 
-const MEMBERSHIP_PRICE = 149.0; // Individual membership price
+import { MEMBERSHIP_PRICE } from '../config/pricing';
+
+// Memberships that ended up to this many days ago are still renewed, so a server that was down on
+// the renewal date catches up when it starts. Older lapses are left expired.
+const CATCH_UP_DAYS = 30;
 
 export class MembershipRenewalService {
   /**
-   * Renew memberships that expire today for customers who turned on auto-renewal and have a
+   * Renew memberships that expire today (or lapsed within CATCH_UP_DAYS) for customers who turned on auto-renewal and have a
    * saved payment method: extend the membership by a year and record an auto-renewed purchase.
    *
    * This replaces the MySQL stored procedure `auto_renew_memberships()` and its daily EVENT.
-   * It is safe to run repeatedly - once renewed, a membership no longer ends today.
+   * It is safe to run repeatedly - once renewed, a membership ends a year later.
    *
    * @returns the number of memberships renewed
    */
@@ -28,7 +32,7 @@ export class MembershipRenewalService {
          INNER JOIN customer_payment_methods pm ON c.customer_id = pm.customer_id
          WHERE c.annual_pass = 'yes'
            AND c.membership_auto_renew = 1
-           AND c.membership_end_date = CURDATE()`,
+           AND c.membership_end_date BETWEEN date(CURDATE(), '-${CATCH_UP_DAYS} days') AND CURDATE()`,
         [MEMBERSHIP_PRICE]
       );
 
@@ -40,7 +44,7 @@ export class MembershipRenewalService {
              annual_pass = 'yes'
          WHERE annual_pass = 'yes'
            AND membership_auto_renew = 1
-           AND membership_end_date = CURDATE()
+           AND membership_end_date BETWEEN date(CURDATE(), '-${CATCH_UP_DAYS} days') AND CURDATE()
            AND customer_id IN (SELECT customer_id FROM customer_payment_methods)`
       );
 

@@ -20,10 +20,10 @@ export const createEvent = async (req: Request, res: Response) => {
   try {
     console.log('📅 Creating event with data:', JSON.stringify(req.body, null, 2));
 
-    // Add the authenticated user's account_id as the coordinator_id
+    // Default the coordinator to the creating employee when the form didn't pick one
     const eventData = {
       ...req.body,
-      created_by: (req as any).user?.account_id
+      coordinator_id: req.body.coordinator_id || req.body.created_by || (req as any).user?.employee_id
     };
 
     const newEvent = await eventService.createEvent(eventData);

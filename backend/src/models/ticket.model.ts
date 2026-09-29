@@ -23,26 +23,20 @@ export class TicketModel {
     const { ticket_id, purchase_date, ...insertData } = ticket as any;
 
     // Use explicit column names for better error handling
-    const sql = `INSERT INTO tickets (customer_id, visit_date, ticket_type, price, payment_method)
-                 VALUES (?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO tickets (customer_id, visit_date, ticket_type, price, payment_method, sold_by)
+                 VALUES (?, ?, ?, ?, ?, ?)`;
 
     const result = await query<any>(sql, [
       insertData.customer_id || null,
       insertData.visit_date,
       insertData.ticket_type,
       insertData.price,
-      insertData.payment_method || 'online'
+      insertData.payment_method || null,
+      insertData.sold_by || null
     ]);
 
-    return {
-      ticket_id: result.insertId,
-      customer_id: insertData.customer_id || null,
-      visit_date: insertData.visit_date,
-      ticket_type: insertData.ticket_type,
-      price: insertData.price,
-      payment_method: insertData.payment_method || 'online',
-      purchase_date: new Date().toISOString()
-    } as Ticket;
+    const [created] = await query<Ticket[]>('SELECT * FROM tickets WHERE ticket_id = ?', [result.insertId]);
+    return created;
   }
 
   static async remove(id: number): Promise<void> {

@@ -84,6 +84,8 @@ export class TransactionService {
         er.registration_date,
         er.number_of_participants,
         er.total_amount,
+        er.refunded_at,
+        er.refund_reason,
         c.first_name,
         c.last_name
       FROM event_registrations er
@@ -100,6 +102,8 @@ export class TransactionService {
         details: {
           participants: row.number_of_participants,
         },
+        refunded_at: row.refunded_at,
+        refund_reason: row.refund_reason,
       }));
     } catch (error) {
       // If event_registrations table doesn't exist or has issues, return empty array

@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, pickColumns } from '../config/database';
 
 export interface Employee {
   employee_id?: number;
@@ -35,6 +35,7 @@ export class EmployeeModel {
   }
 
   static async create(employee: Omit<Employee, 'employee_id'>): Promise<Employee> {
+    employee = pickColumns('employees', employee) as typeof employee;
     // Filter out undefined values to avoid MySQL errors
     const cleanData = Object.fromEntries(
       Object.entries(employee).filter(([_, value]) => value !== undefined)
@@ -57,6 +58,9 @@ export class EmployeeModel {
   }
 
   static async update(id: number, updates: Partial<Employee>): Promise<Employee | null> {
+    updates = pickColumns('employees', updates) as typeof updates;
+    if (Object.keys(updates).length === 0) return await this.findById(id);
+
     // Filter out undefined values to avoid MySQL errors
     const cleanData = Object.fromEntries(
       Object.entries(updates).filter(([_, value]) => value !== undefined)
