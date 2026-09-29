@@ -54,6 +54,10 @@ claude.json
 .claudeconfig
 
 # Database files
+backend/data/
+*.db
+*.db-wal
+*.db-shm
 *.sql.bak
 *.mdf
 *.ldf

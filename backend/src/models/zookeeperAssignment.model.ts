@@ -6,7 +6,7 @@ export class ZookeeperAssignmentModel {
     const sql = `
       SELECT
         za.*,
-        CONCAT(e.first_name, ' ', e.last_name) as keeper_name,
+        e.first_name || ' ' || e.last_name as keeper_name,
         a.name as animal_name,
         a.species as animal_species,
         a.health_status as animal_health_status,
@@ -27,7 +27,7 @@ export class ZookeeperAssignmentModel {
     const sql = `
       SELECT
         za.*,
-        CONCAT(e.first_name, ' ', e.last_name) as keeper_name,
+        e.first_name || ' ' || e.last_name as keeper_name,
         a.name as animal_name,
         a.species as animal_species,
         a.health_status as animal_health_status,

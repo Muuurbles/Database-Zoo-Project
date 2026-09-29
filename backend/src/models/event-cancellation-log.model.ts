@@ -6,9 +6,8 @@
  */
 
 import { query } from '../config/database';
-import { RowDataPacket } from 'mysql2';
 
-export interface EventCancellationLog extends RowDataPacket {
+export interface EventCancellationLog {
   log_id: number;
   event_id: number;
   event_name: string;
@@ -132,12 +131,12 @@ export class EventCancellationLogModel {
     total_refunds_needed: number;
     recent_cancellations_24h: number;
   }> {
-    const result = await query<RowDataPacket[]>(
+    const result = await query<any[]>(
       `SELECT
         COUNT(*) as total_cancellations,
         COALESCE(SUM(customers_notified), 0) as total_customers_affected,
         COALESCE(SUM(refunds_needed), 0) as total_refunds_needed,
-        COALESCE(SUM(CASE WHEN cancelled_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 ELSE 0 END), 0) as recent_cancellations_24h
+        COALESCE(SUM(CASE WHEN cancelled_at >= datetime(NOW(), '-24 hours') THEN 1 ELSE 0 END), 0) as recent_cancellations_24h
       FROM event_cancellation_logs`
     );
 

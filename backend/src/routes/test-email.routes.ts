@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { sendMail } from '../services/mailService';
+import { isMailEnabled, sendMail } from '../services/mailService';
 
 const router = Router();
 
@@ -8,6 +8,14 @@ const router = Router();
  * GET /api/test-email
  */
 router.get('/', async (req: Request, res: Response) => {
+  if (!isMailEnabled()) {
+    res.status(503).json({
+      success: false,
+      message: 'Email is disabled. Set MAIL_SERVICE to ethereal, smtp or api in backend/.env and restart the backend.',
+    });
+    return;
+  }
+
   try {
     console.log('[TEST EMAIL] Starting email test...');
     console.log('[TEST EMAIL] Environment variables:');

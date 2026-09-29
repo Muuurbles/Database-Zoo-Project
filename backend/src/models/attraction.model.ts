@@ -14,14 +14,24 @@ export class AttractionModel {
   }
 
   static async create(attraction: Omit<Attraction, 'attraction_id'>): Promise<Attraction> {
-    const sql = 'INSERT INTO attractions SET ?';
-    const result = await query<any>(sql, [attraction]);
+    const fields = Object.entries(attraction).filter(([, value]) => value !== undefined);
+    const columns = fields.map(([key]) => key).join(', ');
+    const placeholders = fields.map(() => '?').join(', ');
+
+    const sql = `INSERT INTO attractions (${columns}) VALUES (${placeholders})`;
+    const result = await query<any>(sql, fields.map(([, value]) => value));
     return { attraction_id: result.insertId, ...attraction };
   }
 
   static async update(id: number, updates: Partial<Attraction>): Promise<Attraction | null> {
-    const sql = 'UPDATE attractions SET ? WHERE attraction_id = ?';
-    await query(sql, [updates, id]);
+    const fields = Object.entries(updates).filter(([, value]) => value !== undefined);
+    if (fields.length === 0) {
+      return await this.findById(id);
+    }
+
+    const setClause = fields.map(([key]) => `${key} = ?`).join(', ');
+    const sql = `UPDATE attractions SET ${setClause} WHERE attraction_id = ?`;
+    await query(sql, [...fields.map(([, value]) => value), id]);
     return await this.findById(id);
   }
 

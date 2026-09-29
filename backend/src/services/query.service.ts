@@ -86,7 +86,7 @@ export class QueryService {
 
         -- Keeper assignment
         e.employee_id as keeper_id,
-        CONCAT(e.first_name, ' ', e.last_name) as keeper_name,
+        e.first_name || ' ' || e.last_name as keeper_name,
         za.shift as keeper_shift,
 
         -- Feeding schedule
@@ -99,7 +99,7 @@ export class QueryService {
         (SELECT COUNT(*)
          FROM feeding_logs fl
          WHERE fl.animal_id = a.animal_id
-         AND fl.feeding_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+         AND fl.feeding_time >= date(CURDATE(), '-30 days')
         ) as feeding_logs_count,
 
         (SELECT MAX(fl.feeding_time)
@@ -156,7 +156,7 @@ export class QueryService {
 
         -- Keeper assignment
         e.employee_id as keeper_id,
-        CONCAT(e.first_name, ' ', e.last_name) as keeper_name,
+        e.first_name || ' ' || e.last_name as keeper_name,
         za.shift as keeper_shift,
 
         -- Feeding schedule
@@ -169,7 +169,7 @@ export class QueryService {
         (SELECT COUNT(*)
          FROM feeding_logs fl
          WHERE fl.animal_id = a.animal_id
-         AND fl.feeding_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+         AND fl.feeding_time >= date(CURDATE(), '-30 days')
         ) as feeding_logs_count,
 
         (SELECT MAX(fl.feeding_time)
@@ -257,11 +257,11 @@ export class QueryService {
         -- Capacity analysis
         CASE
           WHEN e.max_participants IS NULL THEN NULL
-          ELSE ROUND((COALESCE(SUM(er.number_of_participants), 0) / e.max_participants) * 100, 2)
+          ELSE ROUND(COALESCE(SUM(er.number_of_participants), 0) * 100.0 / e.max_participants, 2)
         END as capacity_percentage,
 
         -- Coordinator info
-        CONCAT(emp.first_name, ' ', emp.last_name) as coordinator_name,
+        emp.first_name || ' ' || emp.last_name as coordinator_name,
         e.description
 
       FROM events e

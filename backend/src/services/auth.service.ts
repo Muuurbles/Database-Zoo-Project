@@ -98,7 +98,7 @@ class AuthService {
     try {
       // Step 1: Create a new customer
       const customerResult = await query<any>(
-        'INSERT INTO customers (first_name, last_name, email, phone, address, city, state, zip_code, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+        'INSERT INTO customers (first_name, last_name, email, phone, address, city, state, zip_code, registration_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURDATE())',
         [first_name, last_name, email, phone, address, city, state, zip_code]
       );
       const customerId = customerResult.insertId;

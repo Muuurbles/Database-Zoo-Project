@@ -4,7 +4,7 @@ import { Event, EventWithDetails } from '../types/event.types';
 export class EventModel {
   static async findAll(): Promise<EventWithDetails[]> {
     const sql = `
-      SELECT e.*, CONCAT(emp.first_name, ' ', emp.last_name) as coordinator_name
+      SELECT e.*, emp.first_name || ' ' || emp.last_name as coordinator_name
       FROM events e
       LEFT JOIN employees emp ON e.coordinator_id = emp.employee_id
       WHERE e.deleted_at IS NULL
@@ -15,7 +15,7 @@ export class EventModel {
 
   static async findAllIncludingDeleted(): Promise<EventWithDetails[]> {
     const sql = `
-      SELECT e.*, CONCAT(emp.first_name, ' ', emp.last_name) as coordinator_name
+      SELECT e.*, emp.first_name || ' ' || emp.last_name as coordinator_name
       FROM events e
       LEFT JOIN employees emp ON e.coordinator_id = emp.employee_id
       ORDER BY e.event_date DESC

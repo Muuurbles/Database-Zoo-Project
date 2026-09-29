@@ -1,8 +1,12 @@
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+export type QueryResult<T> = T;
+export type QueryResults<T> = Array<T>;
 
-export type QueryResult<T> = T & RowDataPacket;
-export type QueryResults<T> = Array<T & RowDataPacket>;
-export type MutationResult = ResultSetHeader;
+/** Result of an INSERT/UPDATE/DELETE, shaped like the mysql2 `ResultSetHeader` the models were written against. */
+export interface MutationResult {
+  affectedRows: number;
+  changedRows: number;
+  insertId: number;
+}
 
 export interface PaginationParams {
   page: number;

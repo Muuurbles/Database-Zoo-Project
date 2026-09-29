@@ -31,9 +31,10 @@ import donationRoutes from './routes/donation.routes';
 import transactionRoutes from './routes/transaction.routes';
 import eventCancellationLogRoutes from './routes/event-cancellation-log.routes';
 import testEmailRoutes from './routes/test-email.routes';
-import { initMailService, sendMail } from './services/mailService';
+import { initMailService, isMailEnabled, sendMail } from './services/mailService';
 import { startAnimalAlertEmailJob } from './jobs/animal-alert.job';
 import { startNotificationEmailJob } from './jobs/notification-email.job';
+import { startMembershipRenewalJob } from './jobs/membership-renewal.job';
 
 dotenv.config();
 
@@ -141,8 +142,14 @@ const startServer = async () => {
       console.error('❌ Failed to connect to database. Exiting...');
       process.exit(1);
     }
-    startAnimalAlertEmailJob();
-    startNotificationEmailJob();
+    if (isMailEnabled()) {
+      startAnimalAlertEmailJob();
+      startNotificationEmailJob();
+    } else {
+      // These jobs mark notifications/alerts as handled once they are emailed, so don't run them without a mailer
+      console.log('📪 Email is disabled - email notification jobs not started');
+    }
+    startMembershipRenewalJob();
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

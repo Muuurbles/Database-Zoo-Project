@@ -216,7 +216,7 @@ export class CheckoutService {
     );
 
     // Deplete stock - reduce quantity_in_stock by purchased quantity
-    // This is atomic in MySQL and prevents race conditions
+    // This is atomic and prevents race conditions
     await connection.execute(
       `UPDATE gift_shop_items SET quantity_in_stock = quantity_in_stock - ? WHERE item_id = ? AND quantity_in_stock >= ?`,
       [item.quantity, item.item_id, item.quantity]
@@ -278,7 +278,7 @@ export class CheckoutService {
     if (existingMembership) {
       // Check if membership expires within 30 days
       const [dateCheckResults] = await connection.execute(
-        `SELECT DATEDIFF(membership_end_date, CURDATE()) as days_until_expiry
+        `SELECT CAST(julianday(membership_end_date) - julianday(CURDATE()) AS INTEGER) as days_until_expiry
          FROM customers
          WHERE customer_id = ?`,
         [customerId]
@@ -298,7 +298,7 @@ export class CheckoutService {
 
     // Calculate membership dates (start today, end 1 year from today)
     const [dateResults] = await connection.execute(
-      'SELECT CURDATE() as start_date, DATE_ADD(CURDATE(), INTERVAL 1 YEAR) as end_date'
+      "SELECT CURDATE() as start_date, date(CURDATE(), '+1 year') as end_date"
     );
     const dateResult = dateResults[0];
     const actualStartDate = dateResult?.start_date;
@@ -313,7 +313,7 @@ export class CheckoutService {
       `UPDATE customers
        SET annual_pass = 'yes',
            membership_start_date = CURDATE(),
-           membership_end_date = DATE_ADD(CURDATE(), INTERVAL 1 YEAR),
+           membership_end_date = date(CURDATE(), '+1 year'),
            membership_auto_renew = ?
        WHERE customer_id = ?`,
       [autoRenew, customerId]

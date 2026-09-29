@@ -34,7 +34,7 @@ export class OrderModel {
     const [order] = await query<any[]>(
       `SELECT
         co.*,
-        CONCAT(c.first_name, ' ', c.last_name) as customer_name,
+        c.first_name || ' ' || c.last_name as customer_name,
         c.email as customer_email
        FROM customer_orders co
        JOIN customers c ON co.customer_id = c.customer_id
@@ -54,7 +54,7 @@ export class OrderModel {
       `SELECT
         'ticket' as item_type,
         ticket_id as item_id,
-        CONCAT(ticket_type, ' Ticket') as name,
+        ticket_type || ' Ticket' as name,
         1 as quantity,
         price as unit_price,
         price as line_total,

@@ -6,7 +6,7 @@ export class FeedingLogModel {
     let sql = `
       SELECT
         fl.*,
-        CONCAT(e.first_name, ' ', e.last_name) as keeper_name,
+        e.first_name || ' ' || e.last_name as keeper_name,
         a.name as animal_name
       FROM feeding_logs fl
       LEFT JOIN employees e ON fl.keeper_id = e.employee_id
@@ -44,7 +44,7 @@ export class FeedingLogModel {
     let sql = `
       SELECT
         fl.*,
-        CONCAT(e.first_name, ' ', e.last_name) as keeper_name,
+        e.first_name || ' ' || e.last_name as keeper_name,
         a.name as animal_name
       FROM feeding_logs fl
       LEFT JOIN employees e ON fl.keeper_id = e.employee_id
@@ -64,7 +64,7 @@ export class FeedingLogModel {
     const sql = `
       SELECT
         fl.*,
-        CONCAT(e.first_name, ' ', e.last_name) as keeper_name,
+        e.first_name || ' ' || e.last_name as keeper_name,
         a.name as animal_name
       FROM feeding_logs fl
       LEFT JOIN employees e ON fl.keeper_id = e.employee_id

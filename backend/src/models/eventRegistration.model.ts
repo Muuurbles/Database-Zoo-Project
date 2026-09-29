@@ -14,14 +14,24 @@ export class EventRegistrationModel {
   }
 
   static async create(registration: Omit<EventRegistration, 'registration_id'>): Promise<EventRegistration> {
-    const sql = 'INSERT INTO event_registrations SET ?';
-    const result = await query<any>(sql, [registration]);
+    const fields = Object.entries(registration).filter(([, value]) => value !== undefined);
+    const columns = fields.map(([key]) => key).join(', ');
+    const placeholders = fields.map(() => '?').join(', ');
+
+    const sql = `INSERT INTO event_registrations (${columns}) VALUES (${placeholders})`;
+    const result = await query<any>(sql, fields.map(([, value]) => value));
     return { registration_id: result.insertId, ...registration };
   }
 
   static async update(id: number, updates: Partial<EventRegistration>): Promise<EventRegistration | null> {
-    const sql = 'UPDATE event_registrations SET ? WHERE registration_id = ?';
-    await query(sql, [updates, id]);
+    const fields = Object.entries(updates).filter(([, value]) => value !== undefined);
+    if (fields.length === 0) {
+      return await this.findById(id);
+    }
+
+    const setClause = fields.map(([key]) => `${key} = ?`).join(', ');
+    const sql = `UPDATE event_registrations SET ${setClause} WHERE registration_id = ?`;
+    await query(sql, [...fields.map(([, value]) => value), id]);
     return await this.findById(id);
   }
 

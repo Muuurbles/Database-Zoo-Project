@@ -1,40 +1,11 @@
--- Zoo Management System - Comprehensive Seed Data
+-- Zoo Management System - Comprehensive Seed Data (SQLite)
 -- Includes real image URLs for visual demonstrations
-
-USE zoo_database;
-
-SET FOREIGN_KEY_CHECKS = 0;
-
--- =======================================
--- TRUNCATE ALL TABLES
--- =======================================
-TRUNCATE TABLE notifications;
-TRUNCATE TABLE animals_alert_queue;
-TRUNCATE TABLE cafe_sales;
-TRUNCATE TABLE gift_shop_sale_items;
-TRUNCATE TABLE gift_shop_sales_transactions;
-TRUNCATE TABLE feeding_logs;
-TRUNCATE TABLE feeding_schedules;
-TRUNCATE TABLE zookeeper_assignments;
-TRUNCATE TABLE event_registrations;
-TRUNCATE TABLE tickets;
-TRUNCATE TABLE cafe_items;
-TRUNCATE TABLE cafes;
-TRUNCATE TABLE gift_shop_items;
-TRUNCATE TABLE gift_shops;
-TRUNCATE TABLE animals;
-TRUNCATE TABLE habitats;
-TRUNCATE TABLE attractions;
-TRUNCATE TABLE donations;
-TRUNCATE TABLE membership_purchases;
-TRUNCATE TABLE customer_payment_methods;
-TRUNCATE TABLE passwords;
-TRUNCATE TABLE user_accounts;
-TRUNCATE TABLE customers;
-TRUNCATE TABLE employees;
-TRUNCATE TABLE events;
-
-SET FOREIGN_KEY_CHECKS = 1;
+--
+-- Loaded automatically after zoo_schema.sql when the backend creates a fresh database
+-- (see `npm run db:reset` in backend/). Dates are relative to "today" in the app's fixed
+-- UTC-6 timezone so the demo data always looks current.
+--
+-- All test account passwords are "password" - see CLAUDE.md for the account list.
 
 -- =======================================
 -- EMPLOYEES
@@ -67,8 +38,8 @@ INSERT INTO customers (customer_id, first_name, last_name, email, phone, address
 -- Update Maria Garcia's membership to expire in 20 days (dynamic date calculation)
 UPDATE customers
 SET
-    membership_start_date = DATE_ADD(CURDATE(), INTERVAL -345 DAY),
-    membership_end_date = DATE_ADD(CURDATE(), INTERVAL 20 DAY)
+    membership_start_date = date('now', '-6 hours', '-345 days'),
+    membership_end_date = date('now', '-6 hours', '+20 days')
 WHERE customer_id = 2;
 
 -- =======================================
@@ -120,72 +91,72 @@ INSERT INTO attractions (name, location, human_capacity, opening_time, closing_t
 -- HABITATS
 -- =======================================
 INSERT INTO habitats (habitat_name, attraction_id, size, environment_type, animal_capacity, status, last_maintenance, image_url) VALUES
-('Lion Pride Rock', 1, 'Large', 'Grassland', 8, 'active', DATE_ADD(CURDATE(), INTERVAL -45 DAY), 'https://images.unsplash.com/photo-1583587067350-2c49115673c9?auto=format&fit=crop&w=600&q=80'),
-('Elephant Plains', 1, 'Extra Large', 'Savanna', 12, 'active', DATE_ADD(CURDATE(), INTERVAL -120 DAY), 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?auto=format&fit=crop&w=800&q=80'),
-('Gorilla Forest', 2, 'Large', 'Tropical Forest', 6, 'active', DATE_ADD(CURDATE(), INTERVAL -23 DAY), 'https://images.unsplash.com/photo-1614528767034-70de9fe166e0?auto=format&fit=crop&w=800&q=80'),
-('Penguin Cove', 3, 'Medium', 'Arctic', 25, 'active', DATE_ADD(CURDATE(), INTERVAL -89 DAY), 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?auto=format&fit=crop&w=800&q=80'),
-('Polar Bear Den', 3, 'Large', 'Arctic', 4, 'active', DATE_ADD(CURDATE(), INTERVAL -156 DAY), 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?auto=format&fit=crop&w=800&q=80'),
-('Dolphin Pool', 4, 'Extra Large', 'Aquatic', 8, 'active', DATE_ADD(CURDATE(), INTERVAL -67 DAY), 'https://images.unsplash.com/photo-1763920848955-4b3873ec85cf?auto=format&fit=crop&w=800&q=80'),
-('Snake Sanctuary', 5, 'Medium', 'Desert', 15, 'active', DATE_ADD(CURDATE(), INTERVAL -234 DAY), 'https://images.unsplash.com/photo-1686110448055-5446817f6ac9?auto=format&fit=crop&w=800&q=80'),
-('Aviary', 2, 'Large', 'Tropical Forest', 50, 'active', DATE_ADD(CURDATE(), INTERVAL -102 DAY), 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?auto=format&fit=crop&w=800&q=80');
+('Lion Pride Rock', 1, 'Large', 'Grassland', 8, 'active', date('now', '-6 hours', '-45 days'), 'https://images.unsplash.com/photo-1583587067350-2c49115673c9?auto=format&fit=crop&w=600&q=80'),
+('Elephant Plains', 1, 'Extra Large', 'Savanna', 12, 'active', date('now', '-6 hours', '-120 days'), 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?auto=format&fit=crop&w=800&q=80'),
+('Gorilla Forest', 2, 'Large', 'Tropical Forest', 6, 'active', date('now', '-6 hours', '-23 days'), 'https://images.unsplash.com/photo-1614528767034-70de9fe166e0?auto=format&fit=crop&w=800&q=80'),
+('Penguin Cove', 3, 'Medium', 'Arctic', 25, 'active', date('now', '-6 hours', '-89 days'), 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?auto=format&fit=crop&w=800&q=80'),
+('Polar Bear Den', 3, 'Large', 'Arctic', 4, 'active', date('now', '-6 hours', '-156 days'), 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?auto=format&fit=crop&w=800&q=80'),
+('Dolphin Pool', 4, 'Extra Large', 'Aquatic', 8, 'active', date('now', '-6 hours', '-67 days'), 'https://images.unsplash.com/photo-1763920848955-4b3873ec85cf?auto=format&fit=crop&w=800&q=80'),
+('Snake Sanctuary', 5, 'Medium', 'Desert', 15, 'active', date('now', '-6 hours', '-234 days'), 'https://images.unsplash.com/photo-1686110448055-5446817f6ac9?auto=format&fit=crop&w=800&q=80'),
+('Aviary', 2, 'Large', 'Tropical Forest', 50, 'active', date('now', '-6 hours', '-102 days'), 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?auto=format&fit=crop&w=800&q=80');
 
 -- =======================================
 -- ANIMALS
 -- =======================================
 INSERT INTO animals (name, scientific_name, species, date_of_birth, arrival_date, gender, place_of_origin, habitat_id, health_status, active_status, endangerment_status, weight, image_url) VALUES
-('Simba', 'Panthera leo', 'African Lion', '2018-05-12', DATE_ADD(CURDATE(), INTERVAL -145 DAY), 'male', 'South Africa', 1, 'excellent', 'active', 'vulnerable', 190.5, 'https://images.unsplash.com/photo-1552410260-0fd9b577afa6?auto=format&fit=crop&w=600&q=80'),
-('Nala', 'Panthera leo', 'African Lion', '2019-03-20', DATE_ADD(CURDATE(), INTERVAL -120 DAY), 'female', 'South Africa', 1, 'good', 'active', 'vulnerable', 130.2, 'https://images.unsplash.com/photo-1516728918023-0fd81a3a149c?auto=format&fit=crop&w=600&q=80'),
-('Dumbo', 'Loxodonta africana', 'African Elephant', '2015-08-10', DATE_ADD(CURDATE(), INTERVAL -175 DAY), 'male', 'Kenya', 2, 'excellent', 'active', 'endangered', 5500.0, 'https://images.unsplash.com/photo-1509587837663-52b8687980c5?auto=format&fit=crop&w=600&q=80'),
-('Koko', 'Gorilla gorilla', 'Western Gorilla', '2012-11-05', DATE_ADD(CURDATE(), INTERVAL -160 DAY), 'female', 'Congo', 3, 'good', 'active', 'critically_endangered', 85.0, 'https://images.unsplash.com/photo-1624975981958-9e5ea70cc8d1?auto=format&fit=crop&w=600&q=80'),
-('Skipper', 'Aptenodytes forsteri', 'Emperor Penguin', '2020-07-15', DATE_ADD(CURDATE(), INTERVAL -90 DAY), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 23.5, 'https://images.unsplash.com/photo-1462888210965-cdf193fb74de?auto=format&fit=crop&w=600&q=80'),
-('Snowball', 'Ursus maritimus', 'Polar Bear', '2016-12-20', DATE_ADD(CURDATE(), INTERVAL -150 DAY), 'female', 'Arctic Circle', 5, 'good', 'active', 'vulnerable', 250.0, 'https://images.unsplash.com/photo-1589648751789-c8ecb7a88bd5?auto=format&fit=crop&w=600&q=80'),
-('Flipper', 'Tursiops truncatus', 'Bottlenose Dolphin', '2017-09-08', DATE_ADD(CURDATE(), INTERVAL -80 DAY), 'male', 'Florida', 6, 'excellent', 'active', 'least_concern', 200.0, 'https://images.unsplash.com/photo-1523670982602-6bb44fd1586e?auto=format&fit=crop&w=600&q=80'),
-('Monty', 'Python regius', 'Ball Python', '2021-03-15', DATE_ADD(CURDATE(), INTERVAL -45 DAY), 'male', 'Ghana', 7, 'good', 'active', 'least_concern', 1.8, 'https://images.unsplash.com/photo-1733518950869-b6f479a509af?auto=format&fit=crop&w=600&q=80'),
-('Zazu', 'Panthera leo', 'African Lion', '2020-01-01', DATE_ADD(CURDATE(), INTERVAL -130 DAY), 'male', 'Tanzania', 1, 'excellent', 'active', 'vulnerable', 180.0, 'https://images.unsplash.com/photo-1622354634910-813d14ce8c14?auto=format&fit=crop&w=600&q=80'),
-('Sarabi', 'Panthera leo', 'African Lion', '2019-05-20', DATE_ADD(CURDATE(), INTERVAL -110 DAY), 'female', 'Tanzania', 1, 'good', 'active', 'vulnerable', 120.5, 'https://images.unsplash.com/photo-1567732310772-bb589efdbb03?auto=format&fit=crop&w=600&q=80'),
-('Tantor', 'Loxodonta africana', 'African Elephant', '2010-02-15', DATE_ADD(CURDATE(), INTERVAL -165 DAY), 'male', 'Botswana', 2, 'excellent', 'active', 'endangered', 6000.0, 'https://images.unsplash.com/photo-1536798227072-f571dcefdef1?auto=format&fit=crop&w=600&q=80'),
-('Kala', 'Loxodonta africana', 'African Elephant', '2012-07-22', DATE_ADD(CURDATE(), INTERVAL -155 DAY), 'female', 'Botswana', 2, 'good', 'active', 'endangered', 4500.0, 'https://images.unsplash.com/photo-1559417050-039d66224d3d?auto=format&fit=crop&w=600&q=80'),
-('Kerchak', 'Gorilla gorilla', 'Western Gorilla', '2010-09-10', DATE_ADD(CURDATE(), INTERVAL -170 DAY), 'male', 'Cameroon', 3, 'excellent', 'active', 'critically_endangered', 150.0, 'https://images.unsplash.com/photo-1590692995054-b15a9e80a8f7?auto=format&fit=crop&w=600&q=80'),
-('Terk', 'Gorilla gorilla', 'Western Gorilla', '2011-11-05', DATE_ADD(CURDATE(), INTERVAL -140 DAY), 'female', 'Cameroon', 3, 'good', 'active', 'critically_endangered', 90.0, 'https://images.unsplash.com/photo-1495922592871-61629a82ff4b?auto=format&fit=crop&w=600&q=80'),
-('Pingu', 'Aptenodytes forsteri', 'Emperor Penguin', '2021-06-01', DATE_ADD(CURDATE(), INTERVAL -100 DAY), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 24.0, 'https://images.unsplash.com/photo-1520637438573-ee1ba80b2a7f?auto=format&fit=crop&w=600&q=80'),
-('Pingi', 'Aptenodytes forsteri', 'Emperor Penguin', '2021-06-05', DATE_ADD(CURDATE(), INTERVAL -95 DAY), 'female', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 22.0, 'https://images.unsplash.com/photo-1704177095104-b5d09a2b923a?auto=format&fit=crop&w=600&q=80'),
-('Pinga', 'Aptenodytes forsteri', 'Emperor Penguin', '2022-08-01', DATE_ADD(CURDATE(), INTERVAL -30 DAY), 'female', 'Antarctica', 4, 'good', 'active', 'near_threatened', 15.0, 'https://images.unsplash.com/photo-1475874619827-b5f0310b6e6f?auto=format&fit=crop&w=600&q=80'),
-('Kowalski', 'Aptenodytes forsteri', 'Emperor Penguin', '2020-07-15', DATE_ADD(CURDATE(), INTERVAL -85 DAY), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 23.5, 'https://images.unsplash.com/photo-1552633832-4f5a1b110980?auto=format&fit=crop&w=600&q=80'),
-('Rico', 'Aptenodytes forsteri', 'Emperor Penguin', '2020-07-15', DATE_ADD(CURDATE(), INTERVAL -75 DAY), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 23.5, 'https://images.unsplash.com/photo-1654013313410-c7b0044462dd?auto=format&fit=crop&w=600&q=80'),
-('Lars', 'Ursus maritimus', 'Polar Bear', '2015-11-10', DATE_ADD(CURDATE(), INTERVAL -165 DAY), 'male', 'Norway', 5, 'good', 'active', 'vulnerable', 450.0, 'https://images.unsplash.com/photo-1674754107407-aaa1254e1dfb?auto=format&fit=crop&w=600&q=80'),
-('Echo', 'Tursiops truncatus', 'Bottlenose Dolphin', '2018-08-01', DATE_ADD(CURDATE(), INTERVAL -125 DAY), 'female', 'Mexico', 6, 'excellent', 'active', 'least_concern', 180.0, 'https://images.unsplash.com/photo-1513545405020-acc24d818ffc?auto=format&fit=crop&w=600&q=80'),
-('Coral', 'Tursiops truncatus', 'Bottlenose Dolphin', '2019-05-20', DATE_ADD(CURDATE(), INTERVAL -65 DAY), 'female', 'Mexico', 6, 'good', 'active', 'least_concern', 170.0, 'https://images.unsplash.com/photo-1625177100486-048573c04a2c?auto=format&fit=crop&w=600&q=80'),
-('Kaa', 'Python reticulatus', 'Reticulated Python', '2020-01-15', DATE_ADD(CURDATE(), INTERVAL -55 DAY), 'male', 'Indonesia', 7, 'good', 'active', 'least_concern', 2.5, 'https://images.unsplash.com/photo-1661661361870-91c0ce085574?auto=format&fit=crop&w=600&q=80'),
-('Nagini', 'Python bivittatus', 'Burmese Python', '2019-03-10', DATE_ADD(CURDATE(), INTERVAL -95 DAY), 'female', 'Myanmar', 7, 'excellent', 'active', 'vulnerable', 3.0, 'https://images.unsplash.com/photo-1666730140132-e7d83575c599?auto=format&fit=crop&w=600&q=80'),
-('Salazar', 'Boa constrictor', 'Boa Constrictor', '2021-08-20', DATE_ADD(CURDATE(), INTERVAL -35 DAY), 'male', 'Colombia', 7, 'good', 'active', 'least_concern', 2.0, 'https://images.unsplash.com/photo-1551225249-cb5dd379b29b?auto=format&fit=crop&w=600&q=80'),
-('Medusa', 'Eunectes murinus', 'Green Anaconda', '2018-06-12', DATE_ADD(CURDATE(), INTERVAL -145 DAY), 'female', 'Brazil', 7, 'excellent', 'active', 'least_concern', 4.5, 'https://images.unsplash.com/photo-1538439907460-1596cafd4eff?auto=format&fit=crop&w=600&q=80'),
-('Basilisk', 'Varanus komodoensis', 'Komodo Dragon', '2017-09-30', DATE_ADD(CURDATE(), INTERVAL -115 DAY), 'male', 'Indonesia', 7, 'good', 'active', 'endangered', 70.0, 'https://images.unsplash.com/photo-1638319037011-f717b74d95ab?auto=format&fit=crop&w=600&q=80'),
-('Iago', 'Ara macao', 'Scarlet Macaw', '2022-01-10', DATE_ADD(CURDATE(), INTERVAL -25 DAY), 'male', 'Brazil', 8, 'excellent', 'active', 'least_concern', 1.0, 'https://images.unsplash.com/photo-1673299827018-96d4ef9a6f82?auto=format&fit=crop&w=600&q=80'),
-('Blu', 'Ara ararauna', 'Blue-and-yellow Macaw', '2022-02-15', DATE_ADD(CURDATE(), INTERVAL -15 DAY), 'male', 'Brazil', 8, 'excellent', 'active', 'least_concern', 1.2, 'https://images.unsplash.com/photo-1756308944078-beaf8857150a?auto=format&fit=crop&w=600&q=80'),
-('Jewel', 'Ara ararauna', 'Blue-and-yellow Macaw', '2022-03-20', DATE_ADD(CURDATE(), INTERVAL -40 DAY), 'female', 'Brazil', 8, 'good', 'active', 'least_concern', 1.1, 'https://images.unsplash.com/photo-1756308878439-d63e6be71454?auto=format&fit=crop&w=600&q=80'),
-('Touki', 'Ramphastos toco', 'Toco Toucan', '2021-05-10', DATE_ADD(CURDATE(), INTERVAL -60 DAY), 'male', 'Brazil', 8, 'excellent', 'active', 'least_concern', 0.6, 'https://images.unsplash.com/photo-1550853024-fae8cd4be47f?auto=format&fit=crop&w=600&q=80'),
-('Hedwig', 'Bubo scandiacus', 'Snowy Owl', '2020-08-01', DATE_ADD(CURDATE(), INTERVAL -85 DAY), 'female', 'Arctic', 8, 'good', 'active', 'vulnerable', 2.0, 'https://images.unsplash.com/photo-1553264701-d138db4fd5d4?auto=format&fit=crop&w=600&q=80'),
-('Errol', 'Cacatua galerita', 'Sulphur-crested Cockatoo', '2019-04-12', DATE_ADD(CURDATE(), INTERVAL -155 DAY), 'male', 'Australia', 8, 'excellent', 'active', 'least_concern', 0.9, 'https://images.unsplash.com/photo-1632132466779-346277cc58dd?auto=format&fit=crop&w=600&q=80'),
-('Kevin', 'Phoenicopterus roseus', 'Greater Flamingo', '2022-06-30', DATE_ADD(CURDATE(), INTERVAL -20 DAY), 'male', 'Africa', 8, 'good', 'active', 'least_concern', 3.5, 'https://images.unsplash.com/photo-1497206365907-f5e630693df0?auto=format&fit=crop&w=600&q=80'),
-('Becky', 'Gypaetus barbatus', 'Bearded Vulture', '2018-09-10', DATE_ADD(CURDATE(), INTERVAL -135 DAY), 'female', 'Himalayas', 8, 'excellent', 'active', 'near_threatened', 6.0, 'https://images.unsplash.com/photo-1592820634676-703a6e015802?auto=format&fit=crop&w=600&q=80  '),
-('Nigel', 'Pelecanus conspicillatus', 'Australian Pelican', '2021-11-05', DATE_ADD(CURDATE(), INTERVAL -30 DAY), 'male', 'Australia', 8, 'good', 'active', 'least_concern', 5.0, 'https://images.unsplash.com/photo-1579109191035-dfa9544f8be1?auto=format&fit=crop&w=600&q=80'),
-('Scuttle', 'Larus argentatus', 'Herring Gull', '2023-01-01', DATE_ADD(CURDATE(), INTERVAL -5 DAY), 'male', 'North America', 8, 'excellent', 'active', 'least_concern', 1.5, 'https://images.unsplash.com/photo-1441298405295-c4c308d5432e?auto=format&fit=crop&w=600&q=80');
+('Simba', 'Panthera leo', 'African Lion', '2018-05-12', date('now', '-6 hours', '-145 days'), 'male', 'South Africa', 1, 'excellent', 'active', 'vulnerable', 190.5, 'https://images.unsplash.com/photo-1552410260-0fd9b577afa6?auto=format&fit=crop&w=600&q=80'),
+('Nala', 'Panthera leo', 'African Lion', '2019-03-20', date('now', '-6 hours', '-120 days'), 'female', 'South Africa', 1, 'good', 'active', 'vulnerable', 130.2, 'https://images.unsplash.com/photo-1516728918023-0fd81a3a149c?auto=format&fit=crop&w=600&q=80'),
+('Dumbo', 'Loxodonta africana', 'African Elephant', '2015-08-10', date('now', '-6 hours', '-175 days'), 'male', 'Kenya', 2, 'excellent', 'active', 'endangered', 5500.0, 'https://images.unsplash.com/photo-1509587837663-52b8687980c5?auto=format&fit=crop&w=600&q=80'),
+('Koko', 'Gorilla gorilla', 'Western Gorilla', '2012-11-05', date('now', '-6 hours', '-160 days'), 'female', 'Congo', 3, 'good', 'active', 'critically_endangered', 85.0, 'https://images.unsplash.com/photo-1624975981958-9e5ea70cc8d1?auto=format&fit=crop&w=600&q=80'),
+('Skipper', 'Aptenodytes forsteri', 'Emperor Penguin', '2020-07-15', date('now', '-6 hours', '-90 days'), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 23.5, 'https://images.unsplash.com/photo-1462888210965-cdf193fb74de?auto=format&fit=crop&w=600&q=80'),
+('Snowball', 'Ursus maritimus', 'Polar Bear', '2016-12-20', date('now', '-6 hours', '-150 days'), 'female', 'Arctic Circle', 5, 'good', 'active', 'vulnerable', 250.0, 'https://images.unsplash.com/photo-1589648751789-c8ecb7a88bd5?auto=format&fit=crop&w=600&q=80'),
+('Flipper', 'Tursiops truncatus', 'Bottlenose Dolphin', '2017-09-08', date('now', '-6 hours', '-80 days'), 'male', 'Florida', 6, 'excellent', 'active', 'least_concern', 200.0, 'https://images.unsplash.com/photo-1523670982602-6bb44fd1586e?auto=format&fit=crop&w=600&q=80'),
+('Monty', 'Python regius', 'Ball Python', '2021-03-15', date('now', '-6 hours', '-45 days'), 'male', 'Ghana', 7, 'good', 'active', 'least_concern', 1.8, 'https://images.unsplash.com/photo-1733518950869-b6f479a509af?auto=format&fit=crop&w=600&q=80'),
+('Zazu', 'Panthera leo', 'African Lion', '2020-01-01', date('now', '-6 hours', '-130 days'), 'male', 'Tanzania', 1, 'excellent', 'active', 'vulnerable', 180.0, 'https://images.unsplash.com/photo-1622354634910-813d14ce8c14?auto=format&fit=crop&w=600&q=80'),
+('Sarabi', 'Panthera leo', 'African Lion', '2019-05-20', date('now', '-6 hours', '-110 days'), 'female', 'Tanzania', 1, 'good', 'active', 'vulnerable', 120.5, 'https://images.unsplash.com/photo-1567732310772-bb589efdbb03?auto=format&fit=crop&w=600&q=80'),
+('Tantor', 'Loxodonta africana', 'African Elephant', '2010-02-15', date('now', '-6 hours', '-165 days'), 'male', 'Botswana', 2, 'excellent', 'active', 'endangered', 6000.0, 'https://images.unsplash.com/photo-1536798227072-f571dcefdef1?auto=format&fit=crop&w=600&q=80'),
+('Kala', 'Loxodonta africana', 'African Elephant', '2012-07-22', date('now', '-6 hours', '-155 days'), 'female', 'Botswana', 2, 'good', 'active', 'endangered', 4500.0, 'https://images.unsplash.com/photo-1559417050-039d66224d3d?auto=format&fit=crop&w=600&q=80'),
+('Kerchak', 'Gorilla gorilla', 'Western Gorilla', '2010-09-10', date('now', '-6 hours', '-170 days'), 'male', 'Cameroon', 3, 'excellent', 'active', 'critically_endangered', 150.0, 'https://images.unsplash.com/photo-1590692995054-b15a9e80a8f7?auto=format&fit=crop&w=600&q=80'),
+('Terk', 'Gorilla gorilla', 'Western Gorilla', '2011-11-05', date('now', '-6 hours', '-140 days'), 'female', 'Cameroon', 3, 'good', 'active', 'critically_endangered', 90.0, 'https://images.unsplash.com/photo-1495922592871-61629a82ff4b?auto=format&fit=crop&w=600&q=80'),
+('Pingu', 'Aptenodytes forsteri', 'Emperor Penguin', '2021-06-01', date('now', '-6 hours', '-100 days'), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 24.0, 'https://images.unsplash.com/photo-1520637438573-ee1ba80b2a7f?auto=format&fit=crop&w=600&q=80'),
+('Pingi', 'Aptenodytes forsteri', 'Emperor Penguin', '2021-06-05', date('now', '-6 hours', '-95 days'), 'female', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 22.0, 'https://images.unsplash.com/photo-1704177095104-b5d09a2b923a?auto=format&fit=crop&w=600&q=80'),
+('Pinga', 'Aptenodytes forsteri', 'Emperor Penguin', '2022-08-01', date('now', '-6 hours', '-30 days'), 'female', 'Antarctica', 4, 'good', 'active', 'near_threatened', 15.0, 'https://images.unsplash.com/photo-1475874619827-b5f0310b6e6f?auto=format&fit=crop&w=600&q=80'),
+('Kowalski', 'Aptenodytes forsteri', 'Emperor Penguin', '2020-07-15', date('now', '-6 hours', '-85 days'), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 23.5, 'https://images.unsplash.com/photo-1552633832-4f5a1b110980?auto=format&fit=crop&w=600&q=80'),
+('Rico', 'Aptenodytes forsteri', 'Emperor Penguin', '2020-07-15', date('now', '-6 hours', '-75 days'), 'male', 'Antarctica', 4, 'excellent', 'active', 'near_threatened', 23.5, 'https://images.unsplash.com/photo-1654013313410-c7b0044462dd?auto=format&fit=crop&w=600&q=80'),
+('Lars', 'Ursus maritimus', 'Polar Bear', '2015-11-10', date('now', '-6 hours', '-165 days'), 'male', 'Norway', 5, 'good', 'active', 'vulnerable', 450.0, 'https://images.unsplash.com/photo-1674754107407-aaa1254e1dfb?auto=format&fit=crop&w=600&q=80'),
+('Echo', 'Tursiops truncatus', 'Bottlenose Dolphin', '2018-08-01', date('now', '-6 hours', '-125 days'), 'female', 'Mexico', 6, 'excellent', 'active', 'least_concern', 180.0, 'https://images.unsplash.com/photo-1513545405020-acc24d818ffc?auto=format&fit=crop&w=600&q=80'),
+('Coral', 'Tursiops truncatus', 'Bottlenose Dolphin', '2019-05-20', date('now', '-6 hours', '-65 days'), 'female', 'Mexico', 6, 'good', 'active', 'least_concern', 170.0, 'https://images.unsplash.com/photo-1625177100486-048573c04a2c?auto=format&fit=crop&w=600&q=80'),
+('Kaa', 'Python reticulatus', 'Reticulated Python', '2020-01-15', date('now', '-6 hours', '-55 days'), 'male', 'Indonesia', 7, 'good', 'active', 'least_concern', 2.5, 'https://images.unsplash.com/photo-1661661361870-91c0ce085574?auto=format&fit=crop&w=600&q=80'),
+('Nagini', 'Python bivittatus', 'Burmese Python', '2019-03-10', date('now', '-6 hours', '-95 days'), 'female', 'Myanmar', 7, 'excellent', 'active', 'vulnerable', 3.0, 'https://images.unsplash.com/photo-1666730140132-e7d83575c599?auto=format&fit=crop&w=600&q=80'),
+('Salazar', 'Boa constrictor', 'Boa Constrictor', '2021-08-20', date('now', '-6 hours', '-35 days'), 'male', 'Colombia', 7, 'good', 'active', 'least_concern', 2.0, 'https://images.unsplash.com/photo-1551225249-cb5dd379b29b?auto=format&fit=crop&w=600&q=80'),
+('Medusa', 'Eunectes murinus', 'Green Anaconda', '2018-06-12', date('now', '-6 hours', '-145 days'), 'female', 'Brazil', 7, 'excellent', 'active', 'least_concern', 4.5, 'https://images.unsplash.com/photo-1538439907460-1596cafd4eff?auto=format&fit=crop&w=600&q=80'),
+('Basilisk', 'Varanus komodoensis', 'Komodo Dragon', '2017-09-30', date('now', '-6 hours', '-115 days'), 'male', 'Indonesia', 7, 'good', 'active', 'endangered', 70.0, 'https://images.unsplash.com/photo-1638319037011-f717b74d95ab?auto=format&fit=crop&w=600&q=80'),
+('Iago', 'Ara macao', 'Scarlet Macaw', '2022-01-10', date('now', '-6 hours', '-25 days'), 'male', 'Brazil', 8, 'excellent', 'active', 'least_concern', 1.0, 'https://images.unsplash.com/photo-1673299827018-96d4ef9a6f82?auto=format&fit=crop&w=600&q=80'),
+('Blu', 'Ara ararauna', 'Blue-and-yellow Macaw', '2022-02-15', date('now', '-6 hours', '-15 days'), 'male', 'Brazil', 8, 'excellent', 'active', 'least_concern', 1.2, 'https://images.unsplash.com/photo-1756308944078-beaf8857150a?auto=format&fit=crop&w=600&q=80'),
+('Jewel', 'Ara ararauna', 'Blue-and-yellow Macaw', '2022-03-20', date('now', '-6 hours', '-40 days'), 'female', 'Brazil', 8, 'good', 'active', 'least_concern', 1.1, 'https://images.unsplash.com/photo-1756308878439-d63e6be71454?auto=format&fit=crop&w=600&q=80'),
+('Touki', 'Ramphastos toco', 'Toco Toucan', '2021-05-10', date('now', '-6 hours', '-60 days'), 'male', 'Brazil', 8, 'excellent', 'active', 'least_concern', 0.6, 'https://images.unsplash.com/photo-1550853024-fae8cd4be47f?auto=format&fit=crop&w=600&q=80'),
+('Hedwig', 'Bubo scandiacus', 'Snowy Owl', '2020-08-01', date('now', '-6 hours', '-85 days'), 'female', 'Arctic', 8, 'good', 'active', 'vulnerable', 2.0, 'https://images.unsplash.com/photo-1553264701-d138db4fd5d4?auto=format&fit=crop&w=600&q=80'),
+('Errol', 'Cacatua galerita', 'Sulphur-crested Cockatoo', '2019-04-12', date('now', '-6 hours', '-155 days'), 'male', 'Australia', 8, 'excellent', 'active', 'least_concern', 0.9, 'https://images.unsplash.com/photo-1632132466779-346277cc58dd?auto=format&fit=crop&w=600&q=80'),
+('Kevin', 'Phoenicopterus roseus', 'Greater Flamingo', '2022-06-30', date('now', '-6 hours', '-20 days'), 'male', 'Africa', 8, 'good', 'active', 'least_concern', 3.5, 'https://images.unsplash.com/photo-1497206365907-f5e630693df0?auto=format&fit=crop&w=600&q=80'),
+('Becky', 'Gypaetus barbatus', 'Bearded Vulture', '2018-09-10', date('now', '-6 hours', '-135 days'), 'female', 'Himalayas', 8, 'excellent', 'active', 'near_threatened', 6.0, 'https://images.unsplash.com/photo-1592820634676-703a6e015802?auto=format&fit=crop&w=600&q=80  '),
+('Nigel', 'Pelecanus conspicillatus', 'Australian Pelican', '2021-11-05', date('now', '-6 hours', '-30 days'), 'male', 'Australia', 8, 'good', 'active', 'least_concern', 5.0, 'https://images.unsplash.com/photo-1579109191035-dfa9544f8be1?auto=format&fit=crop&w=600&q=80'),
+('Scuttle', 'Larus argentatus', 'Herring Gull', '2023-01-01', date('now', '-6 hours', '-5 days'), 'male', 'North America', 8, 'excellent', 'active', 'least_concern', 1.5, 'https://images.unsplash.com/photo-1441298405295-c4c308d5432e?auto=format&fit=crop&w=600&q=80');
 
 -- =======================================
 -- EVENTS
 -- =======================================
 INSERT INTO events (name, description, event_date, start_time, end_time, location, max_participants, ticket_price, coordinator_id, image_url) VALUES
-('Tiger Feeding Demonstration', 'Watch our experts safely feed the tigers with specialized techniques', DATE_ADD(CURDATE(), INTERVAL -90 DAY), '10:00:00', '11:00:00', 'Big Cat Arena', 200, 12.00, 4, 'https://images.unsplash.com/photo-1503335165261-a1d723f1d0e6?auto=format&fit=crop&w=800&q=80'),
-('Reptile Exhibition', 'Explore the world of snakes, lizards, and other reptiles up close', DATE_ADD(CURDATE(), INTERVAL -70 DAY), '14:00:00', '15:30:00', 'Reptile House', 100, 8.00, 4, 'https://images.unsplash.com/photo-1444947173422-9737546c41a5?auto=format&fit=crop&w=800&q=80'),
-('Primate Discovery Walk', 'Guided tour through our primate exhibits with interactive experiences', DATE_ADD(CURDATE(), INTERVAL -50 DAY), '11:00:00', '12:30:00', 'Primate Territory', 75, 10.00, 4, 'https://images.unsplash.com/photo-1463852247062-1bbca38f7805?auto=format&fit=crop&w=800&q=80'),
-('Butterfly Garden Workshop', 'Learn about monarch butterflies and pollination in our gardens', DATE_ADD(CURDATE(), INTERVAL -30 DAY), '13:00:00', '14:00:00', 'Botanical Garden', 60, 7.00, 4, 'https://images.unsplash.com/photo-1548701822-320aba03ab0f?auto=format&fit=crop&w=800&q=80'),
-('Avian Training Show', 'See our trained birds perform impressive aerial displays', DATE_ADD(CURDATE(), INTERVAL -10 DAY), '15:00:00', '16:00:00', 'Bird Sanctuary Theater', 150, 15.00, 4, 'https://images.unsplash.com/photo-1664790423583-0d72e6ce77fa?auto=format&fit=crop&w=800&q=80'),
-('Aquatic Creature Talk', 'Educational presentation about marine conservation and aquatic life', DATE_ADD(CURDATE(), INTERVAL 10 DAY), '10:30:00', '11:30:00', 'Aquatic Center Amphitheater', 250, 10.00, 4, 'https://images.unsplash.com/photo-1551980349-75d992b49c86?auto=format&fit=crop&w=800&q=80'),
-('Dolphin Show', 'Watch our amazing dolphins perform tricks and learn about marine conservation', DATE_ADD(CURDATE(), INTERVAL 30 DAY), '14:00:00', '15:00:00', 'Aquatic Center Amphitheater', 400, 15.00, 4, 'https://images.unsplash.com/photo-1570481662006-a3a1374699e8?auto=format&fit=crop&w=800&q=80'),
-('Penguin Feeding Time', 'Help our keepers feed the penguins and learn about their diet', DATE_ADD(CURDATE(), INTERVAL 50 DAY), '11:00:00', '11:30:00', 'Penguin Cove', 50, 10.00, 4, 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?auto=format&fit=crop&w=800&q=80'),
-('Lion Encounter', 'Get up close with our lions through the safe viewing area', DATE_ADD(CURDATE(), INTERVAL 70 DAY), '13:00:00', '14:00:00', 'African Savanna', 100, 20.00, 4, 'https://images.unsplash.com/photo-1634875979174-20afffe447b7?auto=format&fit=crop&w=800&q=80'),
-('Kids Zoo Camp', 'Week-long summer camp for children ages 8-12', DATE_ADD(CURDATE(), INTERVAL 85 DAY), '09:00:00', '15:00:00', 'Education Center', 30, 250.00, 4, 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'),
-('Night at the Zoo', 'Special after-hours tour experience with nocturnal animals', DATE_ADD(CURDATE(), INTERVAL 90 DAY), '19:00:00', '22:00:00', 'Various Locations', 150, 35.00, 4, 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=600&q=80');
+('Tiger Feeding Demonstration', 'Watch our experts safely feed the tigers with specialized techniques', date('now', '-6 hours', '-90 days'), '10:00:00', '11:00:00', 'Big Cat Arena', 200, 12.00, 4, 'https://images.unsplash.com/photo-1503335165261-a1d723f1d0e6?auto=format&fit=crop&w=800&q=80'),
+('Reptile Exhibition', 'Explore the world of snakes, lizards, and other reptiles up close', date('now', '-6 hours', '-70 days'), '14:00:00', '15:30:00', 'Reptile House', 100, 8.00, 4, 'https://images.unsplash.com/photo-1444947173422-9737546c41a5?auto=format&fit=crop&w=800&q=80'),
+('Primate Discovery Walk', 'Guided tour through our primate exhibits with interactive experiences', date('now', '-6 hours', '-50 days'), '11:00:00', '12:30:00', 'Primate Territory', 75, 10.00, 4, 'https://images.unsplash.com/photo-1463852247062-1bbca38f7805?auto=format&fit=crop&w=800&q=80'),
+('Butterfly Garden Workshop', 'Learn about monarch butterflies and pollination in our gardens', date('now', '-6 hours', '-30 days'), '13:00:00', '14:00:00', 'Botanical Garden', 60, 7.00, 4, 'https://images.unsplash.com/photo-1548701822-320aba03ab0f?auto=format&fit=crop&w=800&q=80'),
+('Avian Training Show', 'See our trained birds perform impressive aerial displays', date('now', '-6 hours', '-10 days'), '15:00:00', '16:00:00', 'Bird Sanctuary Theater', 150, 15.00, 4, 'https://images.unsplash.com/photo-1664790423583-0d72e6ce77fa?auto=format&fit=crop&w=800&q=80'),
+('Aquatic Creature Talk', 'Educational presentation about marine conservation and aquatic life', date('now', '-6 hours', '+10 days'), '10:30:00', '11:30:00', 'Aquatic Center Amphitheater', 250, 10.00, 4, 'https://images.unsplash.com/photo-1551980349-75d992b49c86?auto=format&fit=crop&w=800&q=80'),
+('Dolphin Show', 'Watch our amazing dolphins perform tricks and learn about marine conservation', date('now', '-6 hours', '+30 days'), '14:00:00', '15:00:00', 'Aquatic Center Amphitheater', 400, 15.00, 4, 'https://images.unsplash.com/photo-1570481662006-a3a1374699e8?auto=format&fit=crop&w=800&q=80'),
+('Penguin Feeding Time', 'Help our keepers feed the penguins and learn about their diet', date('now', '-6 hours', '+50 days'), '11:00:00', '11:30:00', 'Penguin Cove', 50, 10.00, 4, 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?auto=format&fit=crop&w=800&q=80'),
+('Lion Encounter', 'Get up close with our lions through the safe viewing area', date('now', '-6 hours', '+70 days'), '13:00:00', '14:00:00', 'African Savanna', 100, 20.00, 4, 'https://images.unsplash.com/photo-1634875979174-20afffe447b7?auto=format&fit=crop&w=800&q=80'),
+('Kids Zoo Camp', 'Week-long summer camp for children ages 8-12', date('now', '-6 hours', '+85 days'), '09:00:00', '15:00:00', 'Education Center', 30, 250.00, 4, 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'),
+('Night at the Zoo', 'Special after-hours tour experience with nocturnal animals', date('now', '-6 hours', '+90 days'), '19:00:00', '22:00:00', 'Various Locations', 150, 35.00, 4, 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=600&q=80');
 
 -- =======================================
 -- GIFT SHOPS
@@ -572,167 +543,167 @@ INSERT INTO feeding_schedules (animal_id, food_description, frequency, scheduled
 -- FEEDING LOGS
 -- =======================================
 INSERT INTO feeding_logs (animal_id, keeper_id, feeding_time, food_given, quantity_given, notes) VALUES
-(1, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Raw beef with bone', '15kg', 'Good appetite'),
-(1, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Raw chicken', '15kg', 'Ate enthusiastically'),
-(1, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Raw beef', '15kg', 'Normal'),
-(1, 2, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Raw beef', '15kg', 'Active'),
-(1, 2, DATE_SUB(NOW(), INTERVAL 5 DAY) + INTERVAL 9 HOUR, 'Raw chicken', '15kg', 'Good'),
-(1, 2, DATE_SUB(NOW(), INTERVAL 6 DAY) + INTERVAL 9 HOUR, 'Raw beef', '15kg', 'Excellent'),
-(2, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw chicken', '10kg', 'Healthy appetite'),
-(2, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw beef', '10kg', 'Normal'),
-(2, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw chicken', '10kg', 'Good'),
-(2, 2, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw beef', '10kg', 'Excellent'),
-(2, 2, DATE_SUB(NOW(), INTERVAL 5 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw chicken', '10kg', 'Normal'),
-(2, 2, DATE_SUB(NOW(), INTERVAL 6 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw beef', '10kg', 'Good'),
-(3, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 7 HOUR, 'Timothy hay', '50kg', 'Good consumption'),
-(3, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 12 HOUR, 'Mixed fruits and vegetables', '30kg', 'Apples, carrots'),
-(3, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 7 HOUR, 'Timothy hay', '50kg', 'Normal'),
-(3, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 12 HOUR, 'Watermelon, carrots', '30kg', 'Engaged'),
-(3, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 7 HOUR, 'Timothy hay', '50kg', 'Excellent'),
-(3, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 12 HOUR, 'Fruits and vegetables', '30kg', 'Good'),
-(3, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 7 HOUR, 'Timothy hay', '50kg', 'Active'),
-(4, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 8 HOUR, 'Fruits and leafy greens', '8kg', 'Good appetite'),
-(4, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 14 HOUR, 'Vegetables with eggs', '5kg', 'Ate well'),
-(4, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 8 HOUR, 'Mixed fruits', '8kg', 'Normal'),
-(4, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 14 HOUR, 'Vegetables with protein', '5kg', 'Good'),
-(4, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 8 HOUR, 'Fruits and greens', '8kg', 'Excellent'),
-(4, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 8 HOUR, 'Mixed fruits', '8kg', 'Active'),
-(5, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR, 'Herring with vitamins', '2kg', 'Ate enthusiastically'),
-(5, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 17 HOUR + INTERVAL 30 MINUTE, 'Capelin', '1.5kg', 'Normal'),
-(5, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR, 'Capelin with vitamins', '2kg', 'Good appetite'),
-(5, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 17 HOUR + INTERVAL 30 MINUTE, 'Herring', '1.5kg', 'Normal'),
-(5, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR, 'Herring with vitamins', '2kg', 'Excellent'),
-(5, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 17 HOUR + INTERVAL 30 MINUTE, 'Capelin', '1.5kg', 'Active'),
-(5, 2, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 10 HOUR, 'Mixed fish with vitamins', '2kg', 'Good'),
-(6, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Salmon and trout', '20kg', 'Very active'),
-(6, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Mixed fish', '20kg', 'Good appetite'),
-(6, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Salmon', '20kg', 'Normal'),
-(6, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Mackerel and salmon', '20kg', 'Excellent'),
-(6, 7, DATE_SUB(NOW(), INTERVAL 5 DAY) + INTERVAL 9 HOUR, 'Mixed fish', '20kg', 'Active'),
-(6, 7, DATE_SUB(NOW(), INTERVAL 6 DAY) + INTERVAL 9 HOUR, 'Salmon', '20kg', 'Good'),
-(7, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Herring with vitamin E', '6kg', 'Training session'),
-(7, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 13 HOUR, 'Capelin', '6kg', 'Normal'),
-(7, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 17 HOUR, 'Herring with training', '6kg', 'Excellent'),
-(7, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Mixed fish with vitamin E', '6kg', 'Good'),
-(7, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 13 HOUR, 'Herring', '6kg', 'Active'),
-(7, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Herring with vitamin E', '6kg', 'Good'),
-(7, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 13 HOUR, 'Mixed fish', '6kg', 'Normal'),
-(8, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 19 HOUR, 'Frozen-thawed adult rat', '1 rat', 'Good strike'),
-(8, 7, DATE_SUB(NOW(), INTERVAL 9 DAY) + INTERVAL 19 HOUR, 'Frozen-thawed adult rat', '1 rat', 'Normal'),
-(8, 7, DATE_SUB(NOW(), INTERVAL 16 DAY) + INTERVAL 19 HOUR, 'Frozen-thawed adult rat', '1 rat', 'Good'),
-(8, 7, DATE_SUB(NOW(), INTERVAL 23 DAY) + INTERVAL 19 HOUR, 'Frozen-thawed adult rat', '1 rat', 'Excellent'),
-(9, 9, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Raw beef', '12kg', 'Good appetite'),
-(9, 9, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Raw chicken', '12kg', 'Normal'),
-(9, 9, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Raw beef', '12kg', 'Ate well'),
-(9, 9, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Raw beef', '12kg', 'Good'),
-(9, 9, DATE_SUB(NOW(), INTERVAL 5 DAY) + INTERVAL 9 HOUR, 'Raw chicken', '12kg', 'Active'),
-(10, 9, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw chicken', '10kg', 'Good appetite'),
-(10, 9, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw beef', '10kg', 'Normal'),
-(10, 9, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw chicken', '10kg', 'Active'),
-(10, 9, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw beef', '10kg', 'Good'),
-(10, 9, DATE_SUB(NOW(), INTERVAL 5 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Raw chicken', '10kg', 'Excellent'),
-(11, 9, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 7 HOUR, 'Hay', '60kg', 'Good consumption'),
-(11, 9, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 12 HOUR, 'Fruits and vegetables', '35kg', 'Engaged'),
-(11, 9, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 7 HOUR, 'Hay', '60kg', 'Normal'),
-(11, 9, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 12 HOUR, 'Mixed fruits', '35kg', 'Good'),
-(11, 9, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 7 HOUR, 'Hay', '60kg', 'Excellent'),
-(12, 9, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 7 HOUR + INTERVAL 30 MINUTE, 'Hay', '55kg', 'Good'),
-(12, 9, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 7 HOUR + INTERVAL 30 MINUTE, 'Hay', '55kg', 'Normal'),
-(12, 9, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 7 HOUR + INTERVAL 30 MINUTE, 'Vegetables', '35kg', 'Active'),
-(12, 9, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 7 HOUR + INTERVAL 30 MINUTE, 'Hay', '55kg', 'Excellent'),
-(13, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 8 HOUR, 'Fruits and leafy greens', '10kg', 'Good appetite'),
-(13, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 14 HOUR, 'Vegetables and protein', '6kg', 'Active'),
-(13, 10, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 8 HOUR, 'Fruits and leafy greens', '10kg', 'Normal'),
-(13, 10, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 8 HOUR, 'Mixed fruits', '10kg', 'Good'),
-(13, 10, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 8 HOUR, 'Fruits and greens', '10kg', 'Excellent'),
-(14, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 8 HOUR, 'Fruits and leafy greens', '9kg', 'Good'),
-(14, 10, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 8 HOUR, 'Mixed fruits', '9kg', 'Normal'),
-(14, 10, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 8 HOUR, 'Fruits and greens', '9kg', 'Active'),
-(14, 10, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 8 HOUR, 'Leafy greens', '9kg', 'Good'),
-(15, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR, 'Herring with vitamins', '2.5kg', 'Active'),
-(15, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 17 HOUR, 'Capelin', '2kg', 'Good'),
-(15, 10, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR, 'Herring', '2.5kg', 'Normal'),
-(15, 10, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR, 'Herring with vitamins', '2.5kg', 'Excellent'),
-(15, 10, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 10 HOUR, 'Capelin', '2kg', 'Good'),
-(16, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2.5kg', 'Active'),
-(16, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 17 HOUR, 'Fish', '2kg', 'Normal'),
-(16, 10, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2.5kg', 'Good'),
-(16, 10, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR, 'Fish', '2.5kg', 'Excellent'),
-(17, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2kg', 'Good appetite'),
-(17, 10, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR, 'Fish', '2kg', 'Normal'),
-(17, 10, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2kg', 'Active'),
-(17, 10, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 10 HOUR, 'Fish', '2kg', 'Good'),
-(18, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2.5kg', 'Normal'),
-(18, 10, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR, 'Fish', '2.5kg', 'Good'),
-(18, 10, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2.5kg', 'Excellent'),
-(19, 10, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2.5kg', 'Active'),
-(19, 10, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR, 'Fish', '2.5kg', 'Good'),
-(19, 10, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR, 'Fresh fish', '2.5kg', 'Normal'),
-(19, 10, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 10 HOUR, 'Fish', '2.5kg', 'Excellent'),
-(20, 12, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Salmon and trout', '25kg', 'Very active'),
-(20, 12, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Mixed fish', '25kg', 'Good appetite'),
-(20, 12, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Salmon', '25kg', 'Normal'),
-(20, 12, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Mixed fish', '25kg', 'Excellent'),
-(20, 12, DATE_SUB(NOW(), INTERVAL 5 DAY) + INTERVAL 9 HOUR, 'Salmon', '25kg', 'Active'),
-(21, 12, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Fresh fish', '20kg', 'Training session'),
-(21, 12, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 13 HOUR, 'Fish', '20kg', 'Good'),
-(21, 12, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Fresh fish', '20kg', 'Normal'),
-(21, 12, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Fish', '20kg', 'Active'),
-(22, 12, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Fresh fish', '18kg', 'Good'),
-(22, 12, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Fish', '18kg', 'Normal'),
-(22, 12, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Fresh fish', '18kg', 'Excellent'),
-(22, 12, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Fish', '18kg', 'Active'),
-(23, 12, DATE_SUB(NOW(), INTERVAL 5 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rat', '1 rat', 'Good strike'),
-(23, 12, DATE_SUB(NOW(), INTERVAL 19 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rat', '1 rat', 'Normal'),
-(24, 12, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rabbit', '1 rabbit', 'Good consumption'),
-(24, 12, DATE_SUB(NOW(), INTERVAL 18 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rabbit', '1 rabbit', 'Excellent'),
-(25, 12, DATE_SUB(NOW(), INTERVAL 6 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rat', '1 rat', 'Normal'),
-(25, 12, DATE_SUB(NOW(), INTERVAL 13 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rat', '1 rat', 'Good'),
-(25, 12, DATE_SUB(NOW(), INTERVAL 20 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rat', '1 rat', 'Active'),
-(26, 12, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rabbit', '1 rabbit', 'Good'),
-(26, 12, DATE_SUB(NOW(), INTERVAL 30 DAY) + INTERVAL 18 HOUR, 'Frozen-thawed rabbit', '1 rabbit', 'Excellent'),
-(27, 12, DATE_SUB(NOW(), INTERVAL 10 DAY) + INTERVAL 12 HOUR, 'Whole goat', '10kg', 'Large meal'),
-(27, 12, DATE_SUB(NOW(), INTERVAL 45 DAY) + INTERVAL 12 HOUR, 'Large deer', '12kg', 'Massive feeding'),
-(28, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Vocal'),
-(28, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Normal'),
-(28, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Active'),
-(28, 2, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Good'),
-(29, 9, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Good appetite'),
-(29, 9, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Normal'),
-(29, 9, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Active'),
-(29, 9, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Good'),
-(30, 9, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Hunting'),
-(30, 9, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Normal'),
-(30, 9, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Good'),
-(30, 9, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Fruit and seed mix', '100g', 'Excellent'),
-(31, 2, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Chopped fruit and insects', '150g', 'Engaged'),
-(31, 2, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Chopped fruit and insects', '150g', 'Good'),
-(31, 2, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Chopped fruit and insects', '150g', 'Normal'),
-(31, 2, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR + INTERVAL 30 MINUTE, 'Chopped fruit and insects', '150g', 'Active'),
-(32, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 20 HOUR, 'Thawed mice', '2 mice', 'Quick strike'),
-(32, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 20 HOUR, 'Thawed mice', '2 mice', 'Good'),
-(32, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 20 HOUR, 'Thawed mice', '2 mice', 'Normal'),
-(32, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 20 HOUR, 'Thawed mice', '2 mice', 'Excellent'),
-(33, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR, 'Seed mix', '150g', 'Vocal'),
-(33, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 9 HOUR, 'Seed mix', '150g', 'Normal'),
-(33, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 9 HOUR, 'Seed mix', '150g', 'Active'),
-(33, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 9 HOUR, 'Seed mix', '150g', 'Good'),
-(34, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 8 HOUR, 'Flamingo pellets', '200g', 'Color maintenance'),
-(34, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 8 HOUR, 'Flamingo pellets', '200g', 'Good'),
-(34, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 8 HOUR, 'Flamingo pellets', '200g', 'Normal'),
-(34, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 8 HOUR, 'Flamingo pellets', '200g', 'Active'),
-(35, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 11 HOUR, 'Bone marrow', '150g', 'Aggressive eating'),
-(35, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 11 HOUR, 'Bone marrow', '150g', 'Good'),
-(35, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 11 HOUR, 'Meat scraps', '150g', 'Normal'),
-(35, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 11 HOUR, 'Bone marrow', '150g', 'Excellent'),
-(36, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR, 'Whole fish', '200g', 'Swallowed whole'),
-(36, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR, 'Whole fish', '200g', 'Good'),
-(36, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR, 'Whole fish', '200g', 'Normal'),
-(36, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 10 HOUR, 'Whole fish', '200g', 'Active'),
-(37, 7, DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR + INTERVAL 30 MINUTE, 'Fish and insects', '180g', 'Opportunistic'),
-(37, 7, DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 10 HOUR + INTERVAL 30 MINUTE, 'Fish and insects', '180g', 'Good'),
-(37, 7, DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 10 HOUR + INTERVAL 30 MINUTE, 'Fish and insects', '180g', 'Normal'),
-(37, 7, DATE_SUB(NOW(), INTERVAL 4 DAY) + INTERVAL 10 HOUR + INTERVAL 30 MINUTE, 'Fish and insects', '180g', 'Excellent');
+(1, 2, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Raw beef with bone', '15kg', 'Good appetite'),
+(1, 2, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Raw chicken', '15kg', 'Ate enthusiastically'),
+(1, 2, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Raw beef', '15kg', 'Normal'),
+(1, 2, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Raw beef', '15kg', 'Active'),
+(1, 2, datetime('now', '-6 hours', '-5 days', '+9 hours'), 'Raw chicken', '15kg', 'Good'),
+(1, 2, datetime('now', '-6 hours', '-6 days', '+9 hours'), 'Raw beef', '15kg', 'Excellent'),
+(2, 2, datetime('now', '-6 hours', '-1 days', '+9 hours', '+30 minutes'), 'Raw chicken', '10kg', 'Healthy appetite'),
+(2, 2, datetime('now', '-6 hours', '-2 days', '+9 hours', '+30 minutes'), 'Raw beef', '10kg', 'Normal'),
+(2, 2, datetime('now', '-6 hours', '-3 days', '+9 hours', '+30 minutes'), 'Raw chicken', '10kg', 'Good'),
+(2, 2, datetime('now', '-6 hours', '-4 days', '+9 hours', '+30 minutes'), 'Raw beef', '10kg', 'Excellent'),
+(2, 2, datetime('now', '-6 hours', '-5 days', '+9 hours', '+30 minutes'), 'Raw chicken', '10kg', 'Normal'),
+(2, 2, datetime('now', '-6 hours', '-6 days', '+9 hours', '+30 minutes'), 'Raw beef', '10kg', 'Good'),
+(3, 7, datetime('now', '-6 hours', '-1 days', '+7 hours'), 'Timothy hay', '50kg', 'Good consumption'),
+(3, 7, datetime('now', '-6 hours', '-1 days', '+12 hours'), 'Mixed fruits and vegetables', '30kg', 'Apples, carrots'),
+(3, 7, datetime('now', '-6 hours', '-2 days', '+7 hours'), 'Timothy hay', '50kg', 'Normal'),
+(3, 7, datetime('now', '-6 hours', '-2 days', '+12 hours'), 'Watermelon, carrots', '30kg', 'Engaged'),
+(3, 7, datetime('now', '-6 hours', '-3 days', '+7 hours'), 'Timothy hay', '50kg', 'Excellent'),
+(3, 7, datetime('now', '-6 hours', '-3 days', '+12 hours'), 'Fruits and vegetables', '30kg', 'Good'),
+(3, 7, datetime('now', '-6 hours', '-4 days', '+7 hours'), 'Timothy hay', '50kg', 'Active'),
+(4, 7, datetime('now', '-6 hours', '-1 days', '+8 hours'), 'Fruits and leafy greens', '8kg', 'Good appetite'),
+(4, 7, datetime('now', '-6 hours', '-1 days', '+14 hours'), 'Vegetables with eggs', '5kg', 'Ate well'),
+(4, 7, datetime('now', '-6 hours', '-2 days', '+8 hours'), 'Mixed fruits', '8kg', 'Normal'),
+(4, 7, datetime('now', '-6 hours', '-2 days', '+14 hours'), 'Vegetables with protein', '5kg', 'Good'),
+(4, 7, datetime('now', '-6 hours', '-3 days', '+8 hours'), 'Fruits and greens', '8kg', 'Excellent'),
+(4, 7, datetime('now', '-6 hours', '-4 days', '+8 hours'), 'Mixed fruits', '8kg', 'Active'),
+(5, 2, datetime('now', '-6 hours', '-1 days', '+10 hours'), 'Herring with vitamins', '2kg', 'Ate enthusiastically'),
+(5, 2, datetime('now', '-6 hours', '-1 days', '+17 hours', '+30 minutes'), 'Capelin', '1.5kg', 'Normal'),
+(5, 2, datetime('now', '-6 hours', '-2 days', '+10 hours'), 'Capelin with vitamins', '2kg', 'Good appetite'),
+(5, 2, datetime('now', '-6 hours', '-2 days', '+17 hours', '+30 minutes'), 'Herring', '1.5kg', 'Normal'),
+(5, 2, datetime('now', '-6 hours', '-3 days', '+10 hours'), 'Herring with vitamins', '2kg', 'Excellent'),
+(5, 2, datetime('now', '-6 hours', '-3 days', '+17 hours', '+30 minutes'), 'Capelin', '1.5kg', 'Active'),
+(5, 2, datetime('now', '-6 hours', '-4 days', '+10 hours'), 'Mixed fish with vitamins', '2kg', 'Good'),
+(6, 7, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Salmon and trout', '20kg', 'Very active'),
+(6, 7, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Mixed fish', '20kg', 'Good appetite'),
+(6, 7, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Salmon', '20kg', 'Normal'),
+(6, 7, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Mackerel and salmon', '20kg', 'Excellent'),
+(6, 7, datetime('now', '-6 hours', '-5 days', '+9 hours'), 'Mixed fish', '20kg', 'Active'),
+(6, 7, datetime('now', '-6 hours', '-6 days', '+9 hours'), 'Salmon', '20kg', 'Good'),
+(7, 2, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Herring with vitamin E', '6kg', 'Training session'),
+(7, 2, datetime('now', '-6 hours', '-1 days', '+13 hours'), 'Capelin', '6kg', 'Normal'),
+(7, 2, datetime('now', '-6 hours', '-1 days', '+17 hours'), 'Herring with training', '6kg', 'Excellent'),
+(7, 2, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Mixed fish with vitamin E', '6kg', 'Good'),
+(7, 2, datetime('now', '-6 hours', '-2 days', '+13 hours'), 'Herring', '6kg', 'Active'),
+(7, 2, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Herring with vitamin E', '6kg', 'Good'),
+(7, 2, datetime('now', '-6 hours', '-3 days', '+13 hours'), 'Mixed fish', '6kg', 'Normal'),
+(8, 7, datetime('now', '-6 hours', '-2 days', '+19 hours'), 'Frozen-thawed adult rat', '1 rat', 'Good strike'),
+(8, 7, datetime('now', '-6 hours', '-9 days', '+19 hours'), 'Frozen-thawed adult rat', '1 rat', 'Normal'),
+(8, 7, datetime('now', '-6 hours', '-16 days', '+19 hours'), 'Frozen-thawed adult rat', '1 rat', 'Good'),
+(8, 7, datetime('now', '-6 hours', '-23 days', '+19 hours'), 'Frozen-thawed adult rat', '1 rat', 'Excellent'),
+(9, 9, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Raw beef', '12kg', 'Good appetite'),
+(9, 9, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Raw chicken', '12kg', 'Normal'),
+(9, 9, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Raw beef', '12kg', 'Ate well'),
+(9, 9, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Raw beef', '12kg', 'Good'),
+(9, 9, datetime('now', '-6 hours', '-5 days', '+9 hours'), 'Raw chicken', '12kg', 'Active'),
+(10, 9, datetime('now', '-6 hours', '-1 days', '+9 hours', '+30 minutes'), 'Raw chicken', '10kg', 'Good appetite'),
+(10, 9, datetime('now', '-6 hours', '-2 days', '+9 hours', '+30 minutes'), 'Raw beef', '10kg', 'Normal'),
+(10, 9, datetime('now', '-6 hours', '-3 days', '+9 hours', '+30 minutes'), 'Raw chicken', '10kg', 'Active'),
+(10, 9, datetime('now', '-6 hours', '-4 days', '+9 hours', '+30 minutes'), 'Raw beef', '10kg', 'Good'),
+(10, 9, datetime('now', '-6 hours', '-5 days', '+9 hours', '+30 minutes'), 'Raw chicken', '10kg', 'Excellent'),
+(11, 9, datetime('now', '-6 hours', '-1 days', '+7 hours'), 'Hay', '60kg', 'Good consumption'),
+(11, 9, datetime('now', '-6 hours', '-1 days', '+12 hours'), 'Fruits and vegetables', '35kg', 'Engaged'),
+(11, 9, datetime('now', '-6 hours', '-2 days', '+7 hours'), 'Hay', '60kg', 'Normal'),
+(11, 9, datetime('now', '-6 hours', '-2 days', '+12 hours'), 'Mixed fruits', '35kg', 'Good'),
+(11, 9, datetime('now', '-6 hours', '-3 days', '+7 hours'), 'Hay', '60kg', 'Excellent'),
+(12, 9, datetime('now', '-6 hours', '-1 days', '+7 hours', '+30 minutes'), 'Hay', '55kg', 'Good'),
+(12, 9, datetime('now', '-6 hours', '-2 days', '+7 hours', '+30 minutes'), 'Hay', '55kg', 'Normal'),
+(12, 9, datetime('now', '-6 hours', '-3 days', '+7 hours', '+30 minutes'), 'Vegetables', '35kg', 'Active'),
+(12, 9, datetime('now', '-6 hours', '-4 days', '+7 hours', '+30 minutes'), 'Hay', '55kg', 'Excellent'),
+(13, 10, datetime('now', '-6 hours', '-1 days', '+8 hours'), 'Fruits and leafy greens', '10kg', 'Good appetite'),
+(13, 10, datetime('now', '-6 hours', '-1 days', '+14 hours'), 'Vegetables and protein', '6kg', 'Active'),
+(13, 10, datetime('now', '-6 hours', '-2 days', '+8 hours'), 'Fruits and leafy greens', '10kg', 'Normal'),
+(13, 10, datetime('now', '-6 hours', '-3 days', '+8 hours'), 'Mixed fruits', '10kg', 'Good'),
+(13, 10, datetime('now', '-6 hours', '-4 days', '+8 hours'), 'Fruits and greens', '10kg', 'Excellent'),
+(14, 10, datetime('now', '-6 hours', '-1 days', '+8 hours'), 'Fruits and leafy greens', '9kg', 'Good'),
+(14, 10, datetime('now', '-6 hours', '-2 days', '+8 hours'), 'Mixed fruits', '9kg', 'Normal'),
+(14, 10, datetime('now', '-6 hours', '-3 days', '+8 hours'), 'Fruits and greens', '9kg', 'Active'),
+(14, 10, datetime('now', '-6 hours', '-4 days', '+8 hours'), 'Leafy greens', '9kg', 'Good'),
+(15, 10, datetime('now', '-6 hours', '-1 days', '+10 hours'), 'Herring with vitamins', '2.5kg', 'Active'),
+(15, 10, datetime('now', '-6 hours', '-1 days', '+17 hours'), 'Capelin', '2kg', 'Good'),
+(15, 10, datetime('now', '-6 hours', '-2 days', '+10 hours'), 'Herring', '2.5kg', 'Normal'),
+(15, 10, datetime('now', '-6 hours', '-3 days', '+10 hours'), 'Herring with vitamins', '2.5kg', 'Excellent'),
+(15, 10, datetime('now', '-6 hours', '-4 days', '+10 hours'), 'Capelin', '2kg', 'Good'),
+(16, 10, datetime('now', '-6 hours', '-1 days', '+10 hours'), 'Fresh fish', '2.5kg', 'Active'),
+(16, 10, datetime('now', '-6 hours', '-1 days', '+17 hours'), 'Fish', '2kg', 'Normal'),
+(16, 10, datetime('now', '-6 hours', '-2 days', '+10 hours'), 'Fresh fish', '2.5kg', 'Good'),
+(16, 10, datetime('now', '-6 hours', '-3 days', '+10 hours'), 'Fish', '2.5kg', 'Excellent'),
+(17, 10, datetime('now', '-6 hours', '-1 days', '+10 hours'), 'Fresh fish', '2kg', 'Good appetite'),
+(17, 10, datetime('now', '-6 hours', '-2 days', '+10 hours'), 'Fish', '2kg', 'Normal'),
+(17, 10, datetime('now', '-6 hours', '-3 days', '+10 hours'), 'Fresh fish', '2kg', 'Active'),
+(17, 10, datetime('now', '-6 hours', '-4 days', '+10 hours'), 'Fish', '2kg', 'Good'),
+(18, 10, datetime('now', '-6 hours', '-1 days', '+10 hours'), 'Fresh fish', '2.5kg', 'Normal'),
+(18, 10, datetime('now', '-6 hours', '-2 days', '+10 hours'), 'Fish', '2.5kg', 'Good'),
+(18, 10, datetime('now', '-6 hours', '-3 days', '+10 hours'), 'Fresh fish', '2.5kg', 'Excellent'),
+(19, 10, datetime('now', '-6 hours', '-1 days', '+10 hours'), 'Fresh fish', '2.5kg', 'Active'),
+(19, 10, datetime('now', '-6 hours', '-2 days', '+10 hours'), 'Fish', '2.5kg', 'Good'),
+(19, 10, datetime('now', '-6 hours', '-3 days', '+10 hours'), 'Fresh fish', '2.5kg', 'Normal'),
+(19, 10, datetime('now', '-6 hours', '-4 days', '+10 hours'), 'Fish', '2.5kg', 'Excellent'),
+(20, 12, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Salmon and trout', '25kg', 'Very active'),
+(20, 12, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Mixed fish', '25kg', 'Good appetite'),
+(20, 12, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Salmon', '25kg', 'Normal'),
+(20, 12, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Mixed fish', '25kg', 'Excellent'),
+(20, 12, datetime('now', '-6 hours', '-5 days', '+9 hours'), 'Salmon', '25kg', 'Active'),
+(21, 12, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Fresh fish', '20kg', 'Training session'),
+(21, 12, datetime('now', '-6 hours', '-1 days', '+13 hours'), 'Fish', '20kg', 'Good'),
+(21, 12, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Fresh fish', '20kg', 'Normal'),
+(21, 12, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Fish', '20kg', 'Active'),
+(22, 12, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Fresh fish', '18kg', 'Good'),
+(22, 12, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Fish', '18kg', 'Normal'),
+(22, 12, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Fresh fish', '18kg', 'Excellent'),
+(22, 12, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Fish', '18kg', 'Active'),
+(23, 12, datetime('now', '-6 hours', '-5 days', '+18 hours'), 'Frozen-thawed rat', '1 rat', 'Good strike'),
+(23, 12, datetime('now', '-6 hours', '-19 days', '+18 hours'), 'Frozen-thawed rat', '1 rat', 'Normal'),
+(24, 12, datetime('now', '-6 hours', '-4 days', '+18 hours'), 'Frozen-thawed rabbit', '1 rabbit', 'Good consumption'),
+(24, 12, datetime('now', '-6 hours', '-18 days', '+18 hours'), 'Frozen-thawed rabbit', '1 rabbit', 'Excellent'),
+(25, 12, datetime('now', '-6 hours', '-6 days', '+18 hours'), 'Frozen-thawed rat', '1 rat', 'Normal'),
+(25, 12, datetime('now', '-6 hours', '-13 days', '+18 hours'), 'Frozen-thawed rat', '1 rat', 'Good'),
+(25, 12, datetime('now', '-6 hours', '-20 days', '+18 hours'), 'Frozen-thawed rat', '1 rat', 'Active'),
+(26, 12, datetime('now', '-6 hours', '-1 days', '+18 hours'), 'Frozen-thawed rabbit', '1 rabbit', 'Good'),
+(26, 12, datetime('now', '-6 hours', '-30 days', '+18 hours'), 'Frozen-thawed rabbit', '1 rabbit', 'Excellent'),
+(27, 12, datetime('now', '-6 hours', '-10 days', '+12 hours'), 'Whole goat', '10kg', 'Large meal'),
+(27, 12, datetime('now', '-6 hours', '-45 days', '+12 hours'), 'Large deer', '12kg', 'Massive feeding'),
+(28, 2, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Vocal'),
+(28, 2, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Normal'),
+(28, 2, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Active'),
+(28, 2, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Good'),
+(29, 9, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Good appetite'),
+(29, 9, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Normal'),
+(29, 9, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Active'),
+(29, 9, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Good'),
+(30, 9, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Hunting'),
+(30, 9, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Normal'),
+(30, 9, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Good'),
+(30, 9, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Fruit and seed mix', '100g', 'Excellent'),
+(31, 2, datetime('now', '-6 hours', '-1 days', '+9 hours', '+30 minutes'), 'Chopped fruit and insects', '150g', 'Engaged'),
+(31, 2, datetime('now', '-6 hours', '-2 days', '+9 hours', '+30 minutes'), 'Chopped fruit and insects', '150g', 'Good'),
+(31, 2, datetime('now', '-6 hours', '-3 days', '+9 hours', '+30 minutes'), 'Chopped fruit and insects', '150g', 'Normal'),
+(31, 2, datetime('now', '-6 hours', '-4 days', '+9 hours', '+30 minutes'), 'Chopped fruit and insects', '150g', 'Active'),
+(32, 7, datetime('now', '-6 hours', '-1 days', '+20 hours'), 'Thawed mice', '2 mice', 'Quick strike'),
+(32, 7, datetime('now', '-6 hours', '-2 days', '+20 hours'), 'Thawed mice', '2 mice', 'Good'),
+(32, 7, datetime('now', '-6 hours', '-3 days', '+20 hours'), 'Thawed mice', '2 mice', 'Normal'),
+(32, 7, datetime('now', '-6 hours', '-4 days', '+20 hours'), 'Thawed mice', '2 mice', 'Excellent'),
+(33, 7, datetime('now', '-6 hours', '-1 days', '+9 hours'), 'Seed mix', '150g', 'Vocal'),
+(33, 7, datetime('now', '-6 hours', '-2 days', '+9 hours'), 'Seed mix', '150g', 'Normal'),
+(33, 7, datetime('now', '-6 hours', '-3 days', '+9 hours'), 'Seed mix', '150g', 'Active'),
+(33, 7, datetime('now', '-6 hours', '-4 days', '+9 hours'), 'Seed mix', '150g', 'Good'),
+(34, 7, datetime('now', '-6 hours', '-1 days', '+8 hours'), 'Flamingo pellets', '200g', 'Color maintenance'),
+(34, 7, datetime('now', '-6 hours', '-2 days', '+8 hours'), 'Flamingo pellets', '200g', 'Good'),
+(34, 7, datetime('now', '-6 hours', '-3 days', '+8 hours'), 'Flamingo pellets', '200g', 'Normal'),
+(34, 7, datetime('now', '-6 hours', '-4 days', '+8 hours'), 'Flamingo pellets', '200g', 'Active'),
+(35, 7, datetime('now', '-6 hours', '-1 days', '+11 hours'), 'Bone marrow', '150g', 'Aggressive eating'),
+(35, 7, datetime('now', '-6 hours', '-2 days', '+11 hours'), 'Bone marrow', '150g', 'Good'),
+(35, 7, datetime('now', '-6 hours', '-3 days', '+11 hours'), 'Meat scraps', '150g', 'Normal'),
+(35, 7, datetime('now', '-6 hours', '-4 days', '+11 hours'), 'Bone marrow', '150g', 'Excellent'),
+(36, 7, datetime('now', '-6 hours', '-1 days', '+10 hours'), 'Whole fish', '200g', 'Swallowed whole'),
+(36, 7, datetime('now', '-6 hours', '-2 days', '+10 hours'), 'Whole fish', '200g', 'Good'),
+(36, 7, datetime('now', '-6 hours', '-3 days', '+10 hours'), 'Whole fish', '200g', 'Normal'),
+(36, 7, datetime('now', '-6 hours', '-4 days', '+10 hours'), 'Whole fish', '200g', 'Active'),
+(37, 7, datetime('now', '-6 hours', '-1 days', '+10 hours', '+30 minutes'), 'Fish and insects', '180g', 'Opportunistic'),
+(37, 7, datetime('now', '-6 hours', '-2 days', '+10 hours', '+30 minutes'), 'Fish and insects', '180g', 'Good'),
+(37, 7, datetime('now', '-6 hours', '-3 days', '+10 hours', '+30 minutes'), 'Fish and insects', '180g', 'Normal'),
+(37, 7, datetime('now', '-6 hours', '-4 days', '+10 hours', '+30 minutes'), 'Fish and insects', '180g', 'Excellent');
 
 -- =======================================
 -- GIFT SHOP SALES TRANSACTIONS
@@ -843,38 +814,3 @@ VALUES
 (1, 'TXN023', 1, 5, 2, 1, 8.99, '2025-11-12 12:20:00'),
 (1, 'TXN024', NULL, 5, 8, 2, 14.98, '2025-11-02 13:45:00'),
 (1, 'TXN024', NULL, 5, 10, 1, 2.49, '2025-11-02 13:45:00');
-
--- =======================================
--- SUMMARY
--- =======================================
-SELECT '========================================' as '';
-SELECT 'SEED DATA LOADED SUCCESSFULLY' as '';
-SELECT '========================================' as '';
-
-SELECT 'Employees:' as '', COUNT(*) as count FROM employees;
-SELECT 'Customers:' as '', COUNT(*) as count FROM customers;
-SELECT 'User Accounts:' as '', COUNT(*) as count FROM user_accounts;
-SELECT 'Animals:' as '', COUNT(*) as count FROM animals;
-SELECT 'Events:' as '', COUNT(*) as count FROM events;
-SELECT 'Tickets Sold:' as '', COUNT(*) as count FROM tickets;
-SELECT 'Zookeeper Assignments:' as '', COUNT(*) as count FROM zookeeper_assignments;
-SELECT 'Feeding Schedules:' as '', COUNT(*) as count FROM feeding_schedules;
-SELECT 'Feeding Logs:' as '', COUNT(*) as count FROM feeding_logs;
-
-SELECT '========================================' as '';
-SELECT 'LOGIN CREDENTIALS (All passwords: "password")' as '';
-SELECT '========================================' as '';
-
-SELECT
-    ua.account_id,
-    ua.email,
-    ua.role,
-    CASE
-        WHEN ua.employee_id IS NOT NULL THEN e.job_role
-        ELSE 'customer'
-    END as job_role,
-    'password' as password
-FROM user_accounts ua
-LEFT JOIN employees e ON ua.employee_id = e.employee_id
-LEFT JOIN customers c on ua.customer_id = c.customer_id
-ORDER BY ua.role, ua.account_id;

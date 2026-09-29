@@ -1,13 +1,15 @@
 # Zoo Database Management System
 
-A web-based database system for managing zoo operations including animals, staff, customers, ticket sales, events, and facilities. Built with node.js, React, and MySQL.
+A web-based database system for managing zoo operations including animals, staff, customers, ticket sales, events, and facilities. Built with node.js, React, and SQLite.
 
 ## Setup
 
 ### Prerequisites
-- Node.js (v18+)
-- npm (v8+)
+- Node.js (v22+) - the repo has an `.nvmrc`, so `nvm install && nvm use` gets the right version
+- npm (v10+)
 - Git
+
+There is no database server to install: the app uses an embedded SQLite database.
 
 ### Installation
 
@@ -17,28 +19,15 @@ git clone https://github.com/DylanMiller765/Zoo-Database-Uma-Project
 cd Zoo-Database-Uma-Project
 ```
 
-2. Install dependencies:
+2. Set everything up with one command:
 ```bash
-npm run install:all
+npm run setup
 ```
+This installs the dependencies (root, backend and frontend), creates `backend/.env` (with a freshly generated JWT secret) and `frontend/.env.local`, and creates the database with sample data. It is safe to re-run: existing env files and an existing database are never overwritten.
 
-3. Configure environment variables:
+Emails are turned off by default (`MAIL_SERVICE="none"` in `backend/.env`), so the app needs no network access or accounts. To send emails, set `MAIL_SERVICE` to `ethereal` (fake test inbox), `smtp` or `api` (Brevo, needs a Brevo API key) in `backend/.env`.
 
-**Backend** (`backend/.env`):
-```bash
-cd backend
-cp .env.example .env
-```
-Configure your MySQL database connection and other settings. Note: Brevo is used to send emails. To enable email functionality, add a Brevo API key to the .env file
-
-**Frontend** (`frontend/.env.local`):
-```bash
-cd frontend
-cp .env.local.example .env.local
-```
-Make sure it points to `http://localhost:5000/api`
-
-4. Run the application by starting both servers with (in the root of the project):
+3. Run the application by starting both servers with (in the root of the project):
 
 ```bash
 npm run dev
@@ -47,6 +36,14 @@ npm run dev
 This starts:
 - Backend: http://localhost:5000
 - Frontend: http://localhost:3000
+
+### Database
+
+The database is a single SQLite file, `backend/data/zoo.db`. The first time the backend starts it creates the file from `database/zoo_schema.sql` and loads the sample data in `database/seed_data.sql`, so there is nothing to set up.
+
+- **Start over with fresh sample data:** stop the backend, then run `npm run db:reset` (from the project root or `backend/`).
+- **Use a different file:** set `DB_PATH` in `backend/.env`. `DB_PATH=:memory:` gives a throwaway in-memory database, handy for tests.
+- **Inspect it:** open `backend/data/zoo.db` with the `sqlite3` CLI or any SQLite viewer (e.g. DB Browser for SQLite).
 
 ### Test Accounts
 
@@ -73,7 +70,7 @@ This project implements production-grade security measures:
 
 ### Database Security
 - **Parameterized Queries**: All database queries use prepared statements to prevent SQL injection
-- **Connection Pooling**: Secure connection management with configurable limits (10 local, 25 production)
+- **Foreign Keys Enforced**: Referential integrity is checked by the database on every connection
 - **Soft Deletes**: Sensitive data preserved for audit trails, not permanently deleted
 - **Database Transactions**: Critical operations (checkout, payments) use ACID transactions for data integrity
 
@@ -93,7 +90,7 @@ Current implementation simulates payment flow for demonstration purposes only.
   - Date range queries (`purchase_date`, `sale_timestamp`)
   - Foreign key relationships
   - Health status and active status combinations
-- **Connection Pooling**: 25 concurrent database connections (production), 10 (development)
+- **Embedded Database**: SQLite in WAL mode - no network hop to a database server, and readers don't block the writer
 - **Database Transactions**: Atomic operations ensure all-or-nothing guarantee for checkout
 - **Optimized Queries**: Composite indexes reduce query times by up to 80%
 

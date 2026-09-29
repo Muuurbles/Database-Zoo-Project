@@ -4,24 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A full-stack Zoo Management System for managing animals, staff, customers, tickets, events, facilities, cafes, and gift shops. Built with Next.js (frontend), Express/TypeScript (backend), and MySQL (database).
+A full-stack Zoo Management System for managing animals, staff, customers, tickets, events, facilities, cafes, and gift shops. Built with Next.js (frontend), Express/TypeScript (backend), and SQLite (database).
 
 **Tech Stack:**
 - Frontend: Next.js 14, React 18, TypeScript, TailwindCSS, React Query, Zod
-- Backend: Express, TypeScript, MySQL2, JWT auth, Brevo (emails), node-cron (scheduled jobs)
-- Database: MySQL with Railway hosting
+- Backend: Express, TypeScript, better-sqlite3, JWT auth, Brevo (emails), node-cron (scheduled jobs)
+- Database: SQLite (embedded; a single file at `backend/data/zoo.db`, created and seeded automatically on first start)
 
 ## Development Commands
 
 ### Initial Setup
 ```bash
-# Install all dependencies (root, backend, frontend)
-npm run install:all
-
-# Configure environment variables
-cd backend && cp .env.example .env
-cd frontend && cp .env.local.example .env.local
+# One command after cloning: installs root/backend/frontend dependencies, creates
+# backend/.env (random JWT secret) and frontend/.env.local, and creates the SQLite
+# database with sample data. Safe to re-run - never overwrites existing env files or data.
+npm run setup
 ```
+
+`npm run install:all` only installs dependencies. The SQLite file is also created automatically the first time the backend starts, so `setup` is a convenience rather than a requirement.
 
 ### Running the Application
 ```bash
@@ -67,6 +67,10 @@ cd frontend && npm start
 
 ### Utilities
 ```bash
+# Delete the SQLite file and rebuild it from database/zoo_schema.sql + seed_data.sql
+# (stop the backend first; also works as `npm run db:reset` inside backend/)
+npm run db:reset
+
 # Clean all node_modules and build artifacts
 npm run clean
 ```
@@ -90,7 +94,7 @@ npm run clean
 - All routes mounted in `server.ts` with `/api` prefix
 - JWT-based authentication via `protect` and `optionalAuth` middleware
 - Role-based access control using `restrictTo()` middleware (checks `job_role` field)
-- Database queries use raw SQL with `mysql2` connection pool (no ORM)
+- Database queries use raw SQL through `config/database.ts` (better-sqlite3 behind a mysql2-shaped `query()` / `pool` API; no ORM)
 - Error handling centralized in `error.middleware.ts`
 
 **User System:**
@@ -99,9 +103,9 @@ npm run clean
 - Auth middleware attaches full user object (including employee/customer details) to `req.user`
 
 **Email System:**
-- Configured via `MAIL_SERVICE` env var: "ethereal" (test) or "brevo" (production)
-- Mail service initialized in `services/mailService.ts`
-- Two cron jobs run every 8 seconds:
+- Configured via `MAIL_SERVICE` env var: "none" (default - no emails, no network needed), "ethereal" (test inbox, needs internet), "smtp" or "api" (Brevo, production)
+- Mail service initialized in `services/mailService.ts`; `isMailEnabled()` reports whether a mailer is ready
+- When email is enabled, two cron jobs run every 8 seconds (they are not started when `MAIL_SERVICE=none`, because they mark notifications/alerts as handled once emailed):
   - `jobs/notification-email.job.ts` - processes pending notification emails
   - `jobs/animal-alert.job.ts` - processes animal health alerts
 
@@ -147,13 +151,14 @@ npm run clean
 ### Database
 
 **Schema Files:**
-- `database/zoo_schema.sql` - Table definitions
-- `database/seed_data.sql` - Initial data
+- `database/zoo_schema.sql` - Tables, indexes and triggers (SQLite)
+- `database/seed_data.sql` - Initial data (dates are relative to "today")
 
 **Connection:**
-- Backend connects via `config/database.ts` using `mysql2/promise`
-- Shared Railway database configured in `.env.example` (works out of box)
-- Central Standard Time (UTC-6) configured via `TZ=Etc/GMT+6`
+- Backend opens the database in `config/database.ts` (better-sqlite3). `DB_PATH` overrides the location; `DB_PATH=:memory:` gives a throwaway seeded database for tests
+- If the file has no tables yet, the schema and seed data are applied automatically
+- The app runs on a fixed UTC-6 clock (Central Standard Time, no DST): SQLite defaults use `datetime('now', '-6 hours')`, and `config/database.ts` converts DATE/DATETIME columns to `Date` objects on that clock
+- Server-side logic that used to live in MySQL: the animal-health, membership-expiry and event-cancellation **triggers** are in `zoo_schema.sql`; the membership **auto-renewal** (formerly a stored procedure + EVENT) is `jobs/membership-renewal.job.ts`
 
 ## Test Accounts
 
@@ -214,14 +219,21 @@ Two cron jobs run on backend startup (every 8 seconds):
 - Notification emails: processes pending customer notifications
 - Animal alerts: sends health alerts to veterinarians
 
-Jobs use `node-cron` and are started in `server.ts` via `startAnimalAlertEmailJob()` and `startNotificationEmailJob()`.
+A third job, `jobs/membership-renewal.job.ts`, auto-renews memberships that expire today (daily at midnight on the app's UTC-6 clock, plus once at startup to catch up). It replaces the MySQL stored procedure + EVENT of the same purpose.
+
+Jobs use `node-cron` and are started in `server.ts` via `startAnimalAlertEmailJob()`, `startNotificationEmailJob()` and `startMembershipRenewalJob()`.
 
 ## Development Tips
 
 ### Working with the Database
 - Use `backend/src/config/database.ts` `query()` function for all database operations
 - Always parameterize queries to prevent SQL injection: `query('SELECT * FROM users WHERE id = ?', [userId])`
-- Database timezone is UTC-6 (Central Time)
+- Database timezone is a fixed UTC-6 (Central Time)
+- Write SQLite SQL: `||` instead of `CONCAT()`, `date(x, '+1 year')` / `datetime(x, '-24 hours')` instead of `DATE_ADD` / `DATE_SUB`, `strftime('%Y', x)` instead of `YEAR(x)`, and single quotes for string literals (double-quoted strings are errors). `NOW()` and `CURDATE()` are registered as SQL functions and available in queries
+- Money columns are `REAL` and integer columns divide as integers - write `x * 100.0 / y`, not `x / y * 100`
+- Text columns are `COLLATE NOCASE`, so `=` comparisons and UNIQUE constraints are case-insensitive like MySQL was
+- Insert with explicit column lists (`INSERT INTO t (a, b) VALUES (?, ?)`); MySQL's `INSERT ... SET ?` shorthand is not supported
+- Constraint errors carry MySQL-style codes (`ER_DUP_ENTRY`, `ER_NO_REFERENCED_ROW_2`, ...) so controllers can keep checking `error.code`
 
 ### Authentication Development
 - Use test accounts for development
@@ -237,6 +249,7 @@ Jobs use `node-cron` and are started in `server.ts` via `startAnimalAlertEmailJo
 - Forms use react-hook-form + Zod schemas for validation
 
 ### Email Testing
-- Set `MAIL_SERVICE="ethereal"` in backend `.env` for test emails (logs credentials to console)
-- Set `MAIL_SERVICE="brevo"` with valid API key for production emails
+- Emails are off by default (`MAIL_SERVICE="none"`)
+- Set `MAIL_SERVICE="ethereal"` in backend `.env` for test emails (needs internet; the server still starts if it is unreachable, with emails disabled)
+- Set `MAIL_SERVICE="api"` (or `"smtp"`) with valid Brevo credentials for production emails
 - Email templates in `services/mailService.ts`

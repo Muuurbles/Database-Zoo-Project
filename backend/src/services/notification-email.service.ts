@@ -10,14 +10,13 @@
  */
 
 import { query } from '../config/database';
-import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { sendMail } from './mailService';
 import { NotificationModel } from '../models/notification.model';
 
 // Control email logging verbosity
 const ENABLE_EMAIL_LOGGING = process.env.ENABLE_EMAIL_LOGGING === 'true';
 
-interface Notification extends RowDataPacket {
+interface Notification {
   notification_id: number;
   customer_id: number;
   message: string;
@@ -25,7 +24,7 @@ interface Notification extends RowDataPacket {
   created_at: Date;
 }
 
-interface Customer extends RowDataPacket {
+interface Customer {
   customer_id: number;
   first_name: string;
   last_name: string;

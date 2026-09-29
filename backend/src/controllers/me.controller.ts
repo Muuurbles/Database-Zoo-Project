@@ -292,7 +292,7 @@ export class MeController {
         actualStartDate = start_date;
         // Calculate end date
         const [endDateResult] = await query<any[]>(
-          'SELECT DATE_ADD(?, INTERVAL 1 YEAR) as end_date',
+          "SELECT date(?, '+1 year') as end_date",
           [start_date]
         );
         actualEndDate = endDateResult?.end_date;
@@ -309,7 +309,7 @@ export class MeController {
       } else {
         // Use today as start date - get both dates from database for consistency
         const [dateResult] = await query<any[]>(
-          'SELECT CURDATE() as start_date, DATE_ADD(CURDATE(), INTERVAL 1 YEAR) as end_date'
+          "SELECT CURDATE() as start_date, date(CURDATE(), '+1 year') as end_date"
         );
         actualStartDate = dateResult?.start_date;
         actualEndDate = dateResult?.end_date;
@@ -318,7 +318,7 @@ export class MeController {
           `UPDATE customers 
            SET annual_pass = 'yes', 
                membership_start_date = CURDATE(), 
-               membership_end_date = DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
+               membership_end_date = date(CURDATE(), '+1 year')
            WHERE customer_id = ?`,
           [customerId]
         );

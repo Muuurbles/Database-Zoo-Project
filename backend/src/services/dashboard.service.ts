@@ -6,9 +6,9 @@ export class DashboardService {
     // Optimized: Get all public stats in a single query instead of 3 separate queries
     const [stats] = await query<any[]>(
       `SELECT
-        (SELECT COUNT(DISTINCT species) FROM animals WHERE active_status = "active" AND deleted_at IS NULL) as totalSpecies,
-        (SELECT COUNT(*) FROM habitats WHERE status = "active" AND deleted_at IS NULL) as totalHabitats,
-        (SELECT COUNT(*) FROM tickets WHERE YEAR(visit_date) = YEAR(CURDATE())) as annualVisitors`
+        (SELECT COUNT(DISTINCT species) FROM animals WHERE active_status = 'active' AND deleted_at IS NULL) as totalSpecies,
+        (SELECT COUNT(*) FROM habitats WHERE status = 'active' AND deleted_at IS NULL) as totalHabitats,
+        (SELECT COUNT(*) FROM tickets WHERE strftime('%Y', visit_date) = strftime('%Y', CURDATE())) as annualVisitors`
     );
 
     return {
@@ -22,10 +22,10 @@ export class DashboardService {
     // Optimized: Get all stats in a single query instead of 5 separate queries
     const [stats] = await query<any[]>(
       `SELECT
-        (SELECT COUNT(*) FROM animals WHERE active_status = "active") as totalAnimals,
-        (SELECT COUNT(*) FROM employees WHERE status = "active") as totalEmployees,
+        (SELECT COUNT(*) FROM animals WHERE active_status = 'active') as totalAnimals,
+        (SELECT COUNT(*) FROM employees WHERE status = 'active') as totalEmployees,
         (SELECT COUNT(*) FROM events WHERE event_date >= CURDATE()) as upcomingEvents,
-        (SELECT COUNT(*) FROM habitats WHERE status = "active") as activeHabitats,
+        (SELECT COUNT(*) FROM habitats WHERE status = 'active') as activeHabitats,
         (SELECT COUNT(*) FROM tickets WHERE visit_date = CURDATE()) as todaysVisitors`
     );
 

@@ -7,6 +7,9 @@ dotenv.config();
 // Control email logging verbosity
 const ENABLE_EMAIL_LOGGING = process.env.ENABLE_EMAIL_LOGGING === 'true';
 
+// True once a mail backend is ready. Stays false when MAIL_SERVICE=none (the default) or setup failed.
+let mailEnabled = false;
+
 let transporter: nodemailer.Transporter | null = null;
 let brevoApiClient: brevo.TransactionalEmailsApi | null = null;
 
@@ -99,26 +102,43 @@ export function getEmailStats() {
   };
 }
 
-export const initMailService = async () => {
-  const mode = process.env.MAIL_SERVICE || "ethereal";
+/** Whether emails can actually be sent (false when MAIL_SERVICE=none, the default). */
+export const isMailEnabled = (): boolean => mailEnabled;
 
-  if (mode === "ethereal") {
+export const initMailService = async () => {
+  const mode = process.env.MAIL_SERVICE || "none";
+
+  if (mode === "none") {
+    // ============================================================
+    // DISABLED (default): no emails are sent and nothing needs the network
+    // ============================================================
+    console.log(
+      "📪 Email sending is disabled (MAIL_SERVICE=none). Set MAIL_SERVICE to ethereal, smtp or api in backend/.env to enable it."
+    );
+  } else if (mode === "ethereal") {
     // ============================================================
     // TEST MODE: Ethereal (fake inbox for testing)
     // ============================================================
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      secure: testAccount.smtp.secure,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-    console.log(
-      "✅ [ETHEREAL] Test mode enabled. View emails at: https://ethereal.email/"
-    );
+    try {
+      const testAccount = await nodemailer.createTestAccount();
+      transporter = nodemailer.createTransport({
+        host: testAccount.smtp.host,
+        port: testAccount.smtp.port,
+        secure: testAccount.smtp.secure,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+      mailEnabled = true;
+      console.log(
+        "✅ [ETHEREAL] Test mode enabled. View emails at: https://ethereal.email/"
+      );
+    } catch (error) {
+      // Creating the test inbox needs internet access. Don't stop the server over it;
+      // emails are skipped until the server is restarted with a connection.
+      console.error("❌ [ETHEREAL] Could not create a test mail account (offline?). Emails are disabled:", error);
+    }
   } else if (mode === "api") {
     // ============================================================
     // API MODE: Brevo API (uses HTTPS - no SMTP ports needed!)
@@ -135,6 +155,7 @@ export const initMailService = async () => {
     apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
     brevoApiClient = apiInstance;
 
+    mailEnabled = true;
     console.log(
       "✅ [BREVO API] Email service ready (uses HTTPS)"
     );
@@ -163,12 +184,13 @@ export const initMailService = async () => {
         "💡 TIP: Try MAIL_SERVICE=api instead of smtp if SMTP is blocked"
       );
     }
+    mailEnabled = true;
   } else {
     // ============================================================
     // INVALID MODE
     // ============================================================
     throw new Error(
-      `Invalid MAIL_SERVICE="${mode}". Valid options: "ethereal", "api", "smtp".`
+      `Invalid MAIL_SERVICE="${mode}". Valid options: "none", "ethereal", "api", "smtp".`
     );
   }
 };
@@ -183,7 +205,14 @@ type MailOptions = {
 };
 
 export const sendMail = async (inputs: MailOptions) => {
-  const mode = process.env.MAIL_SERVICE || "ethereal";
+  const mode = process.env.MAIL_SERVICE || "none";
+
+  if (mode === "none") {
+    if (ENABLE_EMAIL_LOGGING) {
+      console.log(`Email disabled (MAIL_SERVICE=none) - not sending "${inputs.subject}" to ${inputs.to}`);
+    }
+    return;
+  }
 
   if (mode === "api") {
     // ============================================================
@@ -257,7 +286,7 @@ export const sendMail = async (inputs: MailOptions) => {
     }
   } else {
     throw new Error(
-      `Invalid MAIL_SERVICE="${mode}". Valid options: "ethereal", "api", "smtp".`
+      `Invalid MAIL_SERVICE="${mode}". Valid options: "none", "ethereal", "api", "smtp".`
     );
   }
 };

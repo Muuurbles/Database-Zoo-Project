@@ -9,13 +9,16 @@ export class GiftShopSaleModel {
 
     try {
       const { items, ...saleData } = sale;
-      const saleSql = 'INSERT INTO gift_shop_sales_transactions SET ?';
-      const saleResult = await connection.query(saleSql, [saleData]);
+      const saleFields = Object.entries(saleData).filter(([, value]) => value !== undefined);
+      const saleSql = `INSERT INTO gift_shop_sales_transactions (${saleFields.map(([key]) => key).join(', ')})
+                       VALUES (${saleFields.map(() => '?').join(', ')})`;
+      const saleResult = await connection.query(saleSql, saleFields.map(([, value]) => value));
       const transactionId = (saleResult[0] as any).insertId;
 
       const itemPromises = items.map(item => {
-        const itemSql = 'INSERT INTO gift_shop_sale_items SET ?';
-        return connection.query(itemSql, [{ ...item, transaction_id: transactionId }]);
+        const itemSql = `INSERT INTO gift_shop_sale_items (transaction_id, item_id, quantity, unit_price)
+                         VALUES (?, ?, ?, ?)`;
+        return connection.query(itemSql, [transactionId, item.item_id, item.quantity, item.unit_price]);
       });
 
       await Promise.all(itemPromises);
@@ -53,7 +56,7 @@ export class GiftShopSaleModel {
   // A return is not a "deletion" of the original transaction.
   // It should be marked as "returned" to preserve the financial record.
   static async remove(id: number): Promise<void> {
-    const sql = 'UPDATE gift_shop_sales_transactions SET status = "returned" WHERE transaction_id = ?';
+    const sql = "UPDATE gift_shop_sales_transactions SET status = 'returned' WHERE transaction_id = ?";
     await query(sql, [id]);
   }
 }

@@ -4,17 +4,19 @@
 This repository is a Node.js monorepo with separate backend and frontend apps.
 - `backend/src`: Express + TypeScript API (`routes/`, `controllers/`, `services/`, `models/`, `middleware/`, `config/`).
 - `frontend/src`: Next.js App Router UI (`app/` pages, `components/`, `services/`, `context/`, `hooks/`, `types/`).
-- `database/`: SQL schema and seed data (`zoo_schema.sql`, `seed_data.sql`).
-- `scripts/`: one-off project scripts.
+- `scripts/`: repo-level helper scripts (`setup.js`, the one-command setup).
+- `database/`: SQLite schema (tables, indexes, triggers) and seed data (`zoo_schema.sql`, `seed_data.sql`). The database file itself (`backend/data/zoo.db`) is created automatically and git-ignored.
 - `.github/workflows/build.yml`: CI build pipeline.
 
 ## Build, Test, and Development Commands
 Run commands from repository root unless noted.
-- `npm run install:all`: install root, backend, and frontend dependencies.
+- `npm run setup`: one-command first-time setup (installs everything, creates env files, creates the SQLite database with sample data). Safe to re-run.
+- `npm run install:all`: install root, backend, and frontend dependencies only.
 - `npm run dev`: run backend (`:5000`) and frontend (`:3000`) concurrently.
 - `npm run build`: compile backend TypeScript and build frontend Next.js app.
 - `cd backend && npm run lint`: lint backend TypeScript with ESLint.
 - `cd frontend && npm run lint`: lint frontend with Next.js ESLint rules.
+- `npm run db:reset`: stop the backend, then delete and rebuild the SQLite database with fresh sample data.
 - `cd backend && npm run migrate-passwords`: run the password migration script.
 
 ## Coding Style & Naming Conventions
@@ -28,6 +30,7 @@ Run commands from repository root unless noted.
 There is currently no formal automated test suite configured (`test` scripts are absent). Until tests are added:
 - Treat lint + build as required quality gates.
 - Manually verify changed flows in both apps (API endpoint behavior and affected UI pages).
+- For a disposable database, run the backend with `DB_PATH=:memory:` (schema + seed data are loaded automatically).
 - If you add tests, colocate by feature and use `*.test.ts`/`*.test.tsx` naming.
 
 ## Commit & Pull Request Guidelines

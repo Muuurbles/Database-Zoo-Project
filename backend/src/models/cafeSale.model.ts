@@ -10,17 +10,17 @@ export class CafeSaleModel {
     try {
       const transactionId = randomUUID();
       const itemPromises = sale.items.map(item => {
-        const sql = 'INSERT INTO cafe_sales SET ?';
-        const saleData = {
-          cafe_id: sale.cafe_id,
-          transaction_id: transactionId,
-          customer_id: sale.customer_id,
-          employee_id: sale.employee_id,
-          item_id: item.item_id,
-          quantity: item.quantity,
-          line_total: item.line_total
-        };
-        return connection.query(sql, [saleData]);
+        const sql = `INSERT INTO cafe_sales (cafe_id, transaction_id, customer_id, employee_id, item_id, quantity, line_total)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        return connection.query(sql, [
+          sale.cafe_id,
+          transactionId,
+          sale.customer_id ?? null,
+          sale.employee_id ?? null,
+          item.item_id,
+          item.quantity,
+          item.line_total
+        ]);
       });
 
       await Promise.all(itemPromises);
@@ -66,7 +66,7 @@ export class CafeSaleModel {
   }
 
   static async remove(transactionId: string): Promise<void> {
-    const sql = 'UPDATE cafe_sales SET status = "returned" WHERE transaction_id = ?';
+    const sql = "UPDATE cafe_sales SET status = 'returned' WHERE transaction_id = ?";
     await query(sql, [transactionId]);
   }
 }
