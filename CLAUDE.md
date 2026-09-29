@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A full-stack Zoo Management System for managing animals, staff, customers, tickets, events, facilities, cafes, and gift shops. Built with Next.js (frontend), Express/TypeScript (backend), and SQLite (database).
 
 **Tech Stack:**
-- Frontend: Next.js 14, React 18, TypeScript, TailwindCSS, React Query, Zod
+- Frontend: Next.js 14, React 18, TypeScript, TailwindCSS, React Query
 - Backend: Express, TypeScript, better-sqlite3, JWT auth, Brevo (emails), node-cron (scheduled jobs)
 - Database: SQLite (embedded; a single file at `backend/data/zoo.db`, created and seeded automatically on first start)
 
@@ -134,7 +134,7 @@ npm run clean
 **State Management:**
 - React Context for global state (auth, cart)
 - React Query (@tanstack/react-query) for server state
-- Form state via react-hook-form + Zod validation
+- Form state is component `useState` with hand-written validation (no form library)
 
 **API Communication:**
 - Centralized Axios instance in `lib/api.ts`
@@ -168,7 +168,7 @@ All test account passwords are `password`:
 - **Veterinarian**: emily.rodriguez@zoo.com or skyjones.vet@gmail.com
 - **Coordinator**: david.kim@zoo.com
 - **Cashier**: lisa.thompson@zoo.com
-- **Customer**: maria.garcia@email.com or john.smth@email.com
+- **Customer**: maria.garcia@email.com or john.smith@email.com
 
 ## Important Implementation Details
 
@@ -210,7 +210,7 @@ Frontend uses `ImageUpload` component for image URL input and `ImageLoader` for 
 
 ### Notifications
 
-Customer notifications stored in `notifications` table with types: 'info', 'warning', 'success', 'error'.
+Customer notifications stored in `notifications` table with types: 'info', 'warning', 'alert' (a CHECK constraint rejects anything else).
 Displayed via `NotificationBanner` component. Cron job sends unsent notifications via email every 8 seconds.
 
 ### Scheduled Jobs
@@ -234,19 +234,24 @@ Jobs use `node-cron` and are started in `server.ts` via `startAnimalAlertEmailJo
 - Text columns are `COLLATE NOCASE`, so `=` comparisons and UNIQUE constraints are case-insensitive like MySQL was
 - Insert with explicit column lists (`INSERT INTO t (a, b) VALUES (?, ?)`); MySQL's `INSERT ... SET ?` shorthand is not supported
 - Constraint errors carry MySQL-style codes (`ER_DUP_ENTRY`, `ER_NO_REFERENCED_ROW_2`, ...) so controllers can keep checking `error.code`
+- Models that build `INSERT`/`UPDATE` column lists from a request body must pass it through `pickColumns(table, data)` first (`config/database.ts`): it keeps only real, writable columns so body keys never reach the SQL text
+- Multi-statement writes go in `withTransaction(async () => { ... })` (or `pool.getConnection()`); hash passwords or do other real I/O *before* opening the transaction
+- ISO timestamps with a `Z`/offset passed as query parameters are converted to the app's UTC-6 clock, like `Date` objects are
+- Checkout prices every item on the server (item rows, or `config/pricing.ts` for tickets and memberships); only the donation amount comes from the cart. Keep `config/pricing.ts` in step with the prices shown in `frontend/src/app/tickets/page.tsx` and `membership/page.tsx`
+- Event cancellation = soft-deleting the event; the `/api/event-cancellations` logs are derived from cancelled events (there is no log table), and cancelled events can't be restored
 
 ### Authentication Development
 - Use test accounts for development
 - Backend `/api/auth/login` returns `{ success, data: { user, token } }`
 - Frontend stores token in localStorage and includes in requests via Authorization header
 - `protect` middleware required on authenticated routes
-- `optionalAuth` middleware for routes that work with or without auth (e.g., checkout)
+- `optionalAuth` middleware exists for routes that work with or without auth (no route uses it today; checkout requires `protect`)
 
 ### Frontend Development
 - Pages in `app/admin/` automatically wrapped by `admin/layout.tsx` (includes Sidebar, TopBar)
 - Use `useAuth()` hook to access current user and check roles
 - API calls should use service methods (e.g., `animalService.getAll()`) not direct axios
-- Forms use react-hook-form + Zod schemas for validation
+- Forms keep their state in `useState` and validate by hand before submitting
 
 ### Email Testing
 - Emails are off by default (`MAIL_SERVICE="none"`)
