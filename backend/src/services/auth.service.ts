@@ -1,6 +1,6 @@
 import { query, pool } from '../config/database';
 import { signToken } from '../utils/jwt.util';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 interface LoginResponse {
   token: string;

@@ -7,7 +7,7 @@
  * Usage: npm run migrate-passwords
  */
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { query } from '../config/database';
 import dotenv from 'dotenv';
 

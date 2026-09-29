@@ -60,7 +60,7 @@ All passwords are `password`:
 This project implements production-grade security measures:
 
 ### Authentication & Authorization
-- **Bcrypt Password Hashing**: Passwords hashed with bcrypt (10 rounds) before storage - never stored in plain text
+- **Bcrypt Password Hashing**: Passwords hashed with bcrypt (10 rounds, via the pure-JS `bcryptjs`) before storage - never stored in plain text
 - **JWT Authentication**: Secure token-based authentication with configurable expiration
 - **Role-Based Access Control**: Granular permissions based on user roles (manager, keeper, veterinarian, etc.)
 - **Rate Limiting**:

@@ -1,6 +1,6 @@
 import { Employee, EmployeeModel } from '../models/employee.model';
 import { query, withTransaction, syncAccountEmail } from '../config/database';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export class EmployeeService {
   static async getAllEmployees(): Promise<Employee[]> {

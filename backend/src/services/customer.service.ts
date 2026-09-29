@@ -1,6 +1,6 @@
 import { Customer, CustomerModel } from '../models/customer.model';
 import { query, withTransaction, syncAccountEmail } from '../config/database';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export class CustomerService {
   static async getAllCustomers(): Promise<Customer[]> {
