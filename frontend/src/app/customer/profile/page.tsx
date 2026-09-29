@@ -748,7 +748,7 @@ export default function CustomerProfilePage() {
                 </p>
               </div>
               <p className="text-sm text-gray-600 mt-4">
-                This action cannot be undone. You'll need to re-enter your payment information for future purchases.
+                This action cannot be undone. You&apos;ll need to re-enter your payment information for future purchases.
               </p>
             </div>
 

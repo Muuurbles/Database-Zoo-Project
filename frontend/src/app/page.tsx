@@ -400,7 +400,7 @@ export default function HomePage() {
       <section id="donate" className="rounded-xl border bg-white p-6 sm:p-8">
         <div className="mx-auto max-w-3xl text-center">
           <h3 className="text-2xl font-semibold">Support Conservation</h3>
-          <p className="mt-3 text-gray-600">Your donations make a real impact. Here's how:</p>
+          <p className="mt-3 text-gray-600">Your donations make a real impact. Here&apos;s how:</p>
           
           <div className="mt-6 grid gap-4 sm:grid-cols-3 text-left">
             <div className="rounded-lg bg-gray-50 p-4">

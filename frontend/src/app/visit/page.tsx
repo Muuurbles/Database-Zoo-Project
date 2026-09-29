@@ -75,7 +75,7 @@ export default function VisitPage() {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-melon-500">•</span>
-                      <span>New Year's Day</span>
+                      <span>New Year&apos;s Day</span>
                     </li>
                   </ul>
                   <p className="mt-4 text-xs text-gray-600">

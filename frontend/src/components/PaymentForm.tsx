@@ -376,7 +376,7 @@ export default function PaymentForm({ onPaymentSubmit, isLoading = false, showSa
                   <span>⚠️</span>
                   {errors.expiry || 'This card has expired. Please use a different card.'}
                 </p>
-                <p className="text-xs text-red-500 mt-1 ml-6">Please check your card's expiration date and try again.</p>
+                <p className="text-xs text-red-500 mt-1 ml-6">Please check your card&apos;s expiration date and try again.</p>
               </div>
             )}
           </div>

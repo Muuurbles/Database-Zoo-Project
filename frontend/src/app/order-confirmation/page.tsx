@@ -95,7 +95,7 @@ function OrderConfirmationContent() {
 
         {/* Additional Info */}
         <div className="bg-blue-50 rounded-lg p-6 mb-8">
-          <h3 className="font-semibold text-lg mb-2 text-blue-900">What's Next?</h3>
+          <h3 className="font-semibold text-lg mb-2 text-blue-900">What&apos;s Next?</h3>
           <ul className="space-y-2 text-blue-800">
             {tickets > 0 && (
               <li>• You can view your tickets in your account dashboard</li>
