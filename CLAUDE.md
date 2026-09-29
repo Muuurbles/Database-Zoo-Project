@@ -31,7 +31,7 @@ npm run dev
 # Run backend only (from backend/)
 npm run dev
 
-# Run frontend only (from frontend/)
+# Run frontend only (from frontend/) - uses Turbopack; `npm run dev:webpack` if it misbehaves
 npm run dev
 ```
 
