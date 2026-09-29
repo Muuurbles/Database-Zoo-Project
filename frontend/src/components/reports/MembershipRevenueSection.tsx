@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreditCard } from "lucide-react";
+import { formatPercent } from '@/lib/utils';
 
 interface MembershipRevenueData {
   total: number;
@@ -85,7 +86,7 @@ export function MembershipRevenueSection({ data }: Props) {
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge className="bg-green-100 text-green-800">
-                          {((parseFloat(String(row.revenue)) / data.total) * 100).toFixed(1)}%
+                          {formatPercent(row.revenue, data.total)}%
                         </Badge>
                       </TableCell>
                     </TableRow>

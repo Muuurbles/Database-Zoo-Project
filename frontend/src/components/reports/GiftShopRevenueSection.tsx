@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ShoppingBag } from "lucide-react";
+import { formatPercent } from '@/lib/utils';
 
 interface GiftShopRevenueData {
   total: number;
@@ -109,7 +110,7 @@ export function GiftShopRevenueSection({ data }: Props) {
                       )}
                       <TableCell className="text-right">
                         <Badge className="bg-pink-100 text-pink-800">
-                          {((parseFloat(String(row.revenue)) / data.total) * 100).toFixed(1)}%
+                          {formatPercent(row.revenue, data.total)}%
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -140,7 +141,7 @@ export function GiftShopRevenueSection({ data }: Props) {
                 </TableHeader>
                 <TableBody>
                   {data.byItem.map((item) => (
-                    <TableRow key={item.item_id}>
+                    <TableRow key={`${item.item_id}-${item.unit_price}`}>
                       <TableCell className="font-medium">{item.item_name}</TableCell>
                       <TableCell className="text-sm text-gray-600">
                         {item.category || 'N/A'}
@@ -156,7 +157,7 @@ export function GiftShopRevenueSection({ data }: Props) {
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge className="bg-pink-100 text-pink-800">
-                          {((parseFloat(String(item.total_revenue)) / data.total) * 100).toFixed(1)}%
+                          {formatPercent(item.total_revenue, data.total)}%
                         </Badge>
                       </TableCell>
                     </TableRow>

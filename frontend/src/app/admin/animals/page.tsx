@@ -55,6 +55,8 @@ export default function AnimalsPage() {
   const isManager = hasRole('manager');
   const isKeeper = hasRole('keeper');
   const isVet = hasRole('veterinarian');
+  // Backend DELETE /animals/:id is restricted to managers and veterinarians
+  const canDeleteAnimal = isManager || isVet;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -154,8 +156,9 @@ export default function AnimalsPage() {
       setDeleteActiveStatus('deceased');
       setDeletionNotes('');
       setDeletionError('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete animal:', error);
+      setDeletionError(error?.response?.data?.message || 'Failed to delete animal. Please try again.');
     }
   };
 
@@ -350,14 +353,16 @@ export default function AnimalsPage() {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleDeleteClick(animal, e)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {canDeleteAnimal && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleDeleteClick(animal, e)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </>
                     ) : (
                       isManager && (

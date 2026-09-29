@@ -58,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
         
+        if (returnTo === 'checkout' && response.data.user.role === 'customer') {
+          router.push('/checkout');
+          return;
+        }
+        
         // Default redirect based on role
         if (response.data.user.role === 'employee') {
           router.push('/admin');

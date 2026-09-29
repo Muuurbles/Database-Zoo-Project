@@ -45,7 +45,7 @@ export interface Employee {
   ssn: string;
   job_role: UserRole;
   employment_type: 'full_time' | 'part_time';
-  salary?: number;
+  salary?: number | null;
   status: 'active' | 'inactive';
   hire_date?: string;
   address?: string;

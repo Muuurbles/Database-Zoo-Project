@@ -40,17 +40,19 @@ export default function EventsPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
   const isManager = hasRole('manager');
+  // Backend only allows managers and coordinators to create/update/delete events
+  const canManageEvents = hasRole(['manager', 'coordinator']);
 
   const hasOpenedModal = useRef(false);
   const searchParams = useSearchParams();
 
   useEffect(() => {
     if (hasOpenedModal.current) return;
-    if (searchParams.get('autoOpen') === 'true') {
+    if (searchParams.get('autoOpen') === 'true' && canManageEvents) {
       handleAdd();
       hasOpenedModal.current = true;
     }
-  }, [searchParams]);
+  }, [searchParams, canManageEvents]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -196,10 +198,12 @@ export default function EventsPage() {
           </h1>
           <p className="text-gray-600 mt-1">Manage zoo events and schedules</p>
         </div>
-        <Button onClick={handleAdd} variant="accent" className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Event
-        </Button>
+        {canManageEvents && (
+          <Button onClick={handleAdd} variant="accent" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Event
+          </Button>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -294,6 +298,7 @@ export default function EventsPage() {
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
                     {!isDeleted(event) ? (
+                      canManageEvents && (
                       <>
                         <Button variant="ghost" size="sm" onClick={(e) => handleEdit(event, e)}>
                           <Edit className="h-4 w-4" />
@@ -307,6 +312,7 @@ export default function EventsPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </>
+                      )
                     ) : (
                       <span className="text-sm text-gray-500 italic">Cancelled</span>
                     )}
@@ -423,12 +429,12 @@ export default function EventsPage() {
             ],
           },
         ]}
-        onEdit={detailEvent && !isDeleted(detailEvent) ? () => {
+        onEdit={canManageEvents && detailEvent && !isDeleted(detailEvent) ? () => {
           setIsDetailModalOpen(false);
           setSelectedEvent(detailEvent);
           setIsModalOpen(true);
         } : undefined}
-        canEdit={detailEvent ? !isDeleted(detailEvent) : false}
+        canEdit={canManageEvents && detailEvent ? !isDeleted(detailEvent) : false}
       />
     </div>
   );

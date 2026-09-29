@@ -47,7 +47,7 @@ export default function TicketsPage() {
 
   const filteredTickets = tickets.filter(ticket =>
     ticket.ticket_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.visit_date.includes(searchTerm)
+    (ticket.visit_date ?? '').includes(searchTerm)
   );
 
   const getTicketTypeBadge = (type: string): "default" | "secondary" | "success" | "warning" => {

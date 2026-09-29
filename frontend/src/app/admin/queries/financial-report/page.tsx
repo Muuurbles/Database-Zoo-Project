@@ -20,6 +20,7 @@ import {
   MembershipRevenueSection,
   DonationRevenueSection,
 } from "@/components/reports";
+import { formatPercent } from '@/lib/utils';
 
 type FinancialReportData = {
   ticketRevenue?: any;
@@ -323,7 +324,7 @@ export default function FinancialReportPage() {
                             ${formatMoney(source.revenue)}
                           </div>
                           <div className="text-xs text-gray-600">
-                            {((source.revenue / reportData.summary.totalRevenue) * 100).toFixed(1)}% of total
+                            {formatPercent(source.revenue, reportData.summary.totalRevenue)}% of total
                           </div>
                         </div>
                       </div>

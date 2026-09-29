@@ -64,7 +64,7 @@ const StatsCard = ({ title, value, icon: Icon, iconColor }: { title: string; val
 
 export default function CustomerDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading, logout } = useAuth();
   const [fetching, setFetching] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [profile, setProfile] = React.useState<any>(null);
@@ -162,14 +162,8 @@ export default function CustomerDashboard() {
   }, [membership.status, membershipData]);
 
   const handleLogout = () => {
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-      }
-    } finally {
-      router.replace("/login");
-    }
+    // AuthContext logout clears storage, resets user state and redirects to /login
+    logout();
   };
 
   const handleToggleAutoRenew = async () => {
@@ -272,7 +266,7 @@ export default function CustomerDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">Welcome back, {firstName}! 🦁</h1>
             <p className="text-gray-600 mt-1">Your zoo adventure dashboard</p>
           </div>
-          <Button variant="outline" onClick={() => router.push("/customer/profile")}>{firstName}'s Account</Button>
+          <Button variant="outline" onClick={() => router.push("/customer/profile")}>{firstName}&apos;s Account</Button>
         </div>
 
         {/* Dashboard Overview - now shows all tickets */}

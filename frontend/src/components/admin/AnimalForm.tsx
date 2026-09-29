@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatDateForInput } from '@/lib/utils';
+import { formatDateForInput, todayLocalDateString } from '@/lib/utils';
 import { ImageUpload } from '@/components/ImageUpload';
 
 interface AnimalFormProps {
@@ -28,7 +28,7 @@ export function AnimalForm({ animal, onSuccess, onCancel }: AnimalFormProps) {
     species: '',
     scientific_name: '',
     date_of_birth: '',
-    arrival_date: new Date().toISOString().split('T')[0],
+    arrival_date: todayLocalDateString(),
     gender: 'unknown',
     place_of_origin: '',
     habitat_id: undefined,

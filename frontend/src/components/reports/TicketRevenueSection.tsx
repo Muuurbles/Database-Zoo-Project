@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Ticket } from "lucide-react";
+import { formatPercent } from '@/lib/utils';
 
 interface TicketRevenueData {
   total: number;
@@ -77,7 +78,7 @@ export function TicketRevenueSection({ data }: Props) {
               </TableHeader>
               <TableBody>
                 {data.byType.map((row) => (
-                  <TableRow key={row.ticket_type}>
+                  <TableRow key={`${row.ticket_type}-${row.unit_price}`}>
                     <TableCell className="font-medium">
                       {formatTicketType(row.ticket_type)}
                     </TableCell>
@@ -90,7 +91,7 @@ export function TicketRevenueSection({ data }: Props) {
                     </TableCell>
                     <TableCell className="text-right">
                       <Badge className="bg-blue-100 text-blue-800">
-                        {((parseFloat(String(row.revenue)) / data.total) * 100).toFixed(1)}%
+                        {formatPercent(row.revenue, data.total)}%
                       </Badge>
                     </TableCell>
                   </TableRow>

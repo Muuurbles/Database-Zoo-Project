@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Coffee } from "lucide-react";
+import { formatPercent } from '@/lib/utils';
 
 interface CafeRevenueData {
   total: number;
@@ -110,7 +111,7 @@ export function CafeRevenueSection({ data }: Props) {
                       )}
                       <TableCell className="text-right">
                         <Badge className="bg-orange-100 text-orange-800">
-                          {((parseFloat(String(row.revenue)) / data.total) * 100).toFixed(1)}%
+                          {formatPercent(row.revenue, data.total)}%
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -157,7 +158,7 @@ export function CafeRevenueSection({ data }: Props) {
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge className="bg-orange-100 text-orange-800">
-                          {((parseFloat(String(item.total_revenue)) / data.total) * 100).toFixed(1)}%
+                          {formatPercent(item.total_revenue, data.total)}%
                         </Badge>
                       </TableCell>
                     </TableRow>

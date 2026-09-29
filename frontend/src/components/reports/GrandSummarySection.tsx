@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, DollarSign, Award } from "lucide-react";
+import { formatPercent } from '@/lib/utils';
 
 interface SummaryData {
   totalRevenue: number;
@@ -87,7 +88,7 @@ export function GrandSummarySection({ data }: Props) {
                       {getSourceLabel(source.name)}
                     </span>
                     <Badge className={getSourceBadgeColor(source.name)}>
-                      {((source.revenue / data.totalRevenue) * 100).toFixed(1)}%
+                      {formatPercent(source.revenue, data.totalRevenue)}%
                     </Badge>
                   </div>
                   <div className="text-xl font-bold text-gray-900">

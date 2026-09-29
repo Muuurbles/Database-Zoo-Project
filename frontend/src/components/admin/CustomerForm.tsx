@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { formatDateForInput, todayLocalDateString } from '@/lib/utils';
 
 interface CustomerFormProps {
   customer?: Customer | null;
@@ -29,7 +30,7 @@ export function CustomerForm({ customer, onSuccess, onCancel }: CustomerFormProp
     state: '',
     zip_code: '',
     annual_pass: 'no',
-    registration_date: new Date().toISOString().split('T')[0],
+    registration_date: todayLocalDateString(),
     password: '',
   });
 
@@ -45,7 +46,7 @@ export function CustomerForm({ customer, onSuccess, onCancel }: CustomerFormProp
         state: customer.state || '',
         zip_code: customer.zip_code || '',
         annual_pass: customer.annual_pass || 'no',
-        registration_date: customer.registration_date || new Date().toISOString().split('T')[0],
+        registration_date: formatDateForInput(customer.registration_date) || todayLocalDateString(),
         password: '', // Don't populate password when editing
       });
     }

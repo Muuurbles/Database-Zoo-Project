@@ -11,6 +11,7 @@ import { authService } from '@/services/auth.service';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { todayLocalDateString, toLocalDateString } from '@/lib/utils';
 
 const TICKET_PRICES = {
   adult: 45.00,
@@ -20,6 +21,13 @@ const TICKET_PRICES = {
 };
 
 const DONATION_AMOUNTS = [10, 25, 50, 100];
+
+// Latest selectable visit date (one year from today), as local 'YYYY-MM-DD'
+const maxVisitDateString = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 365);
+  return toLocalDateString(d);
+};
 
 function TicketsPageContent() {
   const router = useRouter();
@@ -158,16 +166,15 @@ function TicketsPageContent() {
 
     // Validate date is not in the past or too far in the future (only if tickets selected)
     if (totalTickets > 0) {
-      const selectedDate = new Date(visitDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const oneYearFromNow = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      // Compare 'YYYY-MM-DD' strings (lexicographic order == date order)
+      const today = todayLocalDateString();
+      const oneYearFromNow = maxVisitDateString();
 
-      if (selectedDate < today) {
+      if (visitDate < today) {
         setError('Please select a date in the future');
         return;
       }
-      if (selectedDate > oneYearFromNow) {
+      if (visitDate > oneYearFromNow) {
         setError('Please select a date within the next year');
         return;
       }
@@ -377,8 +384,8 @@ function TicketsPageContent() {
                   id="visit-date"
                   value={visitDate}
                   onChange={(e) => setVisitDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  max={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                  min={todayLocalDateString()}
+                  max={maxVisitDateString()}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sea_green-500 focus:border-sea_green-500 transition-all"
                 />
                 <p className="mt-2 text-xs text-gray-600">

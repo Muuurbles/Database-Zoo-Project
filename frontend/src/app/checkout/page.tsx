@@ -27,7 +27,7 @@ export default function CheckoutPage() {
             <p className="text-center text-gray-700 mb-4">
               Please log in to complete your purchase.
             </p>
-            <Link href="/login?redirect=/checkout">
+            <Link href="/login?returnTo=checkout">
               <Button className="w-full bg-sea_green-600 hover:bg-sea_green-700">
                 Log In
               </Button>

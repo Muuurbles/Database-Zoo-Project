@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { formatDateForInput } from '@/lib/utils';
+import { formatDateForInput, todayLocalDateString } from '@/lib/utils';
 
 interface EmployeeFormProps {
   employee?: Employee | null;
@@ -31,7 +31,7 @@ export function EmployeeForm({ employee, onSuccess, onCancel }: EmployeeFormProp
     employment_type: 'full_time',
     salary: undefined,
     status: 'active',
-    hire_date: new Date().toISOString().split('T')[0],
+    hire_date: todayLocalDateString(),
     address: '',
     city: '',
     state: '',
@@ -48,7 +48,7 @@ export function EmployeeForm({ employee, onSuccess, onCancel }: EmployeeFormProp
         last_name: employee.last_name,
         email: employee.email || '',
         phone: employee.phone || '',
-        ssn: employee.ssn,
+        ssn: (employee.ssn || '').replace(/\D/g, ''),
         job_role: employee.job_role,
         employment_type: employee.employment_type,
         salary: employee.salary,
@@ -149,9 +149,9 @@ export function EmployeeForm({ employee, onSuccess, onCancel }: EmployeeFormProp
         birthday: formData.birthday || undefined,
         hire_date: formData.hire_date || undefined,
         gender: formData.gender || undefined,
-        // Ensure salary is a number for full-time or undefined for part-time
+        // Ensure salary is a number for full-time or null for part-time (null clears it; undefined is dropped by JSON)
         salary: formData.employment_type === 'part_time'
-          ? undefined
+          ? null
           : (typeof formData.salary === 'number' ? formData.salary : (formData.salary ? parseFloat(String(formData.salary)) : undefined)),
       };
 

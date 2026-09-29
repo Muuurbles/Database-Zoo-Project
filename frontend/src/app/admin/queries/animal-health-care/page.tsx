@@ -95,7 +95,7 @@ export default function AnimalHealthCarePage() {
     endDate: '',
     habitatStatus: ['active', 'maintenance', 'renovation', 'closed'],
     healthStatus: ['excellent', 'good', 'fair', 'poor', 'critical'],
-    endangerment: ['least_concern', 'near_threatened', 'vulnerable', 'endangered', 'critically_endangered', 'extinct_in_the_wild'],
+    endangerment: ['least_concern', 'near_threatened', 'vulnerable', 'endangered', 'critically_endangered', 'extinct_in_the_wild', 'extinct'],
     includeDeleted: false
   });
 
@@ -348,7 +348,7 @@ export default function AnimalHealthCarePage() {
       endDate: '',
       habitatStatus: ['active', 'maintenance', 'renovation', 'closed'],
       healthStatus: ['excellent', 'good', 'fair', 'poor', 'critical'],
-      endangerment: ['least_concern', 'near_threatened', 'vulnerable', 'endangered', 'critically_endangered', 'extinct_in_the_wild'],
+      endangerment: ['least_concern', 'near_threatened', 'vulnerable', 'endangered', 'critically_endangered', 'extinct_in_the_wild', 'extinct'],
       includeDeleted: false
     });
     setHasGenerated(false);
@@ -386,8 +386,8 @@ export default function AnimalHealthCarePage() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
-    // Format YYYY-MM-DD directly without timezone conversion
-    const [year, month, day] = dateString.split('-');
+    // Format YYYY-MM-DD directly without timezone conversion (drop any 'T...' time part first)
+    const [year, month, day] = dateString.slice(0, 10).split('-');
     return `${month}/${day}/${year}`;
   };
 
@@ -398,7 +398,7 @@ export default function AnimalHealthCarePage() {
 
   const formatWeight = (weight: number | null) => {
     if (!weight) return "N/A";
-    return `${weight} lbs`;
+    return `${weight} kg`;
   };
 
   const getGridColsClass = () => {
@@ -530,7 +530,8 @@ export default function AnimalHealthCarePage() {
               { value: 'vulnerable', label: 'Vulnerable' },
               { value: 'endangered', label: 'Endangered' },
               { value: 'critically_endangered', label: 'Critically Endangered' },
-              { value: 'extinct_in_the_wild', label: 'Extinct in Wild' }
+              { value: 'extinct_in_the_wild', label: 'Extinct in Wild' },
+              { value: 'extinct', label: 'Extinct' }
             ].map(({ value, label }) => (
               <button
                 key={value}

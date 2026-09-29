@@ -64,7 +64,7 @@ export function AnimalDetailModal({ open, onClose, animal, onEdit, canEdit = tru
   const canManageFeeding = hasRole('keeper') || hasRole('veterinarian') || hasRole('manager');
   const canViewLogs = hasRole('keeper') || hasRole('veterinarian') || hasRole('manager');
   const canDeleteSchedule = hasRole('veterinarian') || hasRole('manager');
-  const canDeleteLog = hasRole('keeper') || hasRole('manager');
+  const canDeleteLog = hasRole('manager'); // Backend DELETE /feeding-logs/:id is manager-only
 
   // Reset tab to default when modal opens
   useEffect(() => {

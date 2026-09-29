@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
+import { toLocalDateTimeInput } from '@/lib/utils';
 
 interface FeedingLogFormProps {
   animalId: number;
@@ -24,15 +25,7 @@ export function FeedingLogForm({ animalId, log, schedules = [], onSuccess, onCan
   const [error, setError] = useState('');
 
   // Get current local time in datetime-local format (YYYY-MM-DDTHH:mm)
-  const getLocalDateTimeString = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
+  const getLocalDateTimeString = () => toLocalDateTimeInput(new Date());
 
   const [formData, setFormData] = useState<CreateFeedingLogData>({
     animal_id: animalId,
@@ -43,23 +36,12 @@ export function FeedingLogForm({ animalId, log, schedules = [], onSuccess, onCan
     notes: '',
   });
 
-  // Convert UTC datetime to local datetime-local format
-  const convertToLocalDateTime = (utcDateString: string) => {
-    const date = new Date(utcDateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
   useEffect(() => {
     if (log) {
       setFormData({
         animal_id: log.animal_id,
         keeper_id: log.keeper_id || undefined,
-        feeding_time: log.feeding_time ? convertToLocalDateTime(log.feeding_time) : '',
+        feeding_time: toLocalDateTimeInput(log.feeding_time),
         food_given: log.food_given,
         quantity_given: log.quantity_given || '',
         notes: log.notes || '',
@@ -81,13 +63,12 @@ export function FeedingLogForm({ animalId, log, schedules = [], onSuccess, onCan
     setLoading(true);
 
     try {
-      // Convert datetime-local format to MySQL datetime format (keep as local time, don't convert to UTC)
-      // Use current time as fallback if feeding_time is not set
-      const feedingTime = formData.feeding_time || getLocalDateTimeString();
+      // The datetime-local value is in the browser's local time; send it as an ISO instant
+      // so the backend can convert it to its UTC-6 clock. Use current time as fallback.
+      const feedingTime = formData.feeding_time ? new Date(formData.feeding_time) : new Date();
       const submitData = {
         ...formData,
-        // Format: YYYY-MM-DD HH:mm:ss in local timezone (not UTC)
-        feeding_time: feedingTime.replace('T', ' ') + ':00',
+        feeding_time: feedingTime.toISOString(),
       };
 
       if (log?.log_id) {
